@@ -979,3 +979,19 @@ svg.syl.solo.n3 { height: 1.26em; margin-block: -0.13em; }
 .pad-giveup:active { transform: translateY(5px); box-shadow: 0 3px 0 #A8862B; }
 .pad-learn { background: #4A6FA5 var(--paper-tex); border: 5px solid #34507A; box-shadow: 0 8px 0 #34507A; filter: url(#wobble); }
 .pad-learn:active { box-shadow: 0 3px 0 #34507A; }
+
+/* ---- 商店：買之前的確認框 ---- */
+/* 紙白框、咖啡色手繪描邊，裡面大大的商品圖和價格，下面紅叉叉（不買）、綠打勾（買） */
+.buy-confirm { position: absolute; inset: 0; z-index: 30; }
+.bc-backdrop { position: absolute; left: calc((1200px - var(--W)) / 2); width: var(--W); top: 0; height: var(--H); background: rgba(43,35,25,.55); }
+#stage.portrait .bc-backdrop { left: 0; }
+.bc-box { position: absolute; inset: 0; margin: auto; width: 440px; height: fit-content; box-sizing: border-box; padding: 30px 30px 80px; border-radius: 40px; background: var(--paper) var(--paper-tex); border: 9px solid var(--ink); box-shadow: 0 12px 0 #5E4630; filter: url(#wobble); display: flex; flex-direction: column; align-items: center; gap: 16px; animation: pop .3s; }
+.bc-pic.item-pic { width: 260px; height: 200px; }
+.bc-pic .mate-pic, .bc-pic .mate-pic .dog, .bc-pic .mate-pic .dog-slot .art-slot { width: 200px; height: 231px; }
+.bc-pic.item-pic:has(.mate-pic) { height: 231px; }
+.bc-price { display: flex; align-items: center; gap: 10px; font-size: 56px; font-weight: 900; color: #2B3A4A; }
+.bc-price svg { width: 70px; height: 70px; }
+.bc-btns { position: absolute; left: 0; right: 0; bottom: -56px; display: flex; justify-content: center; gap: 70px; }
+.bc-btns .round-btn { width: 120px; height: 120px; font-size: 64px; color: #fff; filter: none; }
+.round-btn.bc-no { background: #B32B37 var(--paper-tex); border-color: #7E1F28; box-shadow: 0 8px 0 #7E1F28; }
+.round-btn.bc-no:active { box-shadow: 0 3px 0 #7E1F28; }

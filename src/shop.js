@@ -11,6 +11,11 @@ function priceBtn (item, canBuy) {
   return `<button class="item-btn buy ${canBuy ? '' : 'poor'}" data-buy="${item.id}" ${canBuy ? '' : 'disabled'} aria-label="買 ${item.name}">${boneSvg()} ${item.price}</button>`
 }
 
+// 商品的圖：隊員是整隻，配件是裁好的小圖
+function itemPic (item) {
+  return item.kind === 'mate' ? `<div class="mate-pic">${dogSvg(item.color, { mate: true })}</div>` : accessoryIcon(item)
+}
+
 export function renderShop (root, { profile, state, tab = 'acc', onTab, onBuy, onWear, onClose }) {
   const partner = partnerOf(state, profile.color)
   const owned = state.owned || []
@@ -22,15 +27,13 @@ export function renderShop (root, { profile, state, tab = 'acc', onTab, onBuy, o
     const has = owned.includes(item.id)
     const on = item.slot ? worn[item.slot] === item.id : has
     const canBuy = !has && state.bones >= item.price
-    // 按鈕全是圖：叉叉＝脫掉、打勾＝戴上、骨頭加數字＝買（按第一下變橘色加打勾＝確定）
+    // 按鈕全是圖：叉叉＝脫掉、打勾＝戴上、骨頭加數字＝買（跳出確認框再按打勾才真的買）
     let btn
     if (item.kind === 'mate') btn = has ? `<div class="item-btn home-ok" aria-label="已經回家了">${SHOP_ICONS.check}</div>` : priceBtn(item, canBuy)
     else if (has && on) btn = `<button class="item-btn off" data-wear="${item.slot}" data-id="" aria-label="脫掉">${SHOP_ICONS.cross}</button>`
     else if (has) btn = `<button class="item-btn on" data-wear="${item.slot}" data-id="${item.id}" aria-label="戴上">${SHOP_ICONS.check}</button>`
     else btn = priceBtn(item, canBuy)
-    const pic = item.kind === 'mate'
-      ? `<div class="mate-pic">${dogSvg(item.color, { mate: true })}</div>`
-      : accessoryIcon(item)
+    const pic = itemPic(item)
     const label = item.kind === 'mate' ? item.name : `${item.name}（${SLOT_NAMES[item.slot]}）`
     return `
       <div class="item-card ${has ? 'owned' : ''} ${on ? 'worn' : ''}" title="${label}">
@@ -58,18 +61,30 @@ export function renderShop (root, { profile, state, tab = 'acc', onTab, onBuy, o
   root.querySelectorAll('[data-tab]').forEach(b => {
     b.addEventListener('pointerdown', () => onTab(b.dataset.tab))
   })
-  // 買要按兩下：第一下變橘色加打勾，四秒內再按一下才真的買，小孩不會手滑
+  // 買之前跳確認框：大大的商品圖和價格，紅叉叉＝不買、綠打勾＝買。全是圖，小孩看得懂，也不會手滑買到
   root.querySelectorAll('[data-buy]').forEach(btn => {
     const item = all.find(i => i.id === btn.dataset.buy)
-    let armed = null
-    btn.addEventListener('pointerdown', () => {
-      if (btn.disabled) return
-      if (armed) { clearTimeout(armed); onBuy(item); return }
-      btn.classList.add('armed')
-      btn.innerHTML = `${SHOP_ICONS.check} ${item.price}` // 骨頭圖示先拿掉，四位數價格加打勾才塞得進卡片
-      armed = setTimeout(() => { armed = null; btn.classList.remove('armed'); btn.innerHTML = `${boneSvg()} ${item.price}` }, 4000)
-    })
+    btn.addEventListener('pointerdown', () => { if (!btn.disabled) confirmBuy(item) })
   })
+  function confirmBuy (item) {
+    const box = document.createElement('div')
+    box.className = 'buy-confirm'
+    box.innerHTML = `
+      <div class="bc-backdrop"></div>
+      <div class="bc-box">
+        <div class="bc-pic item-pic">${itemPic(item)}</div>
+        <div class="bc-price">${boneSvg()} <b>${item.price}</b></div>
+        <div class="bc-btns">
+          <button class="round-btn bc-no" aria-label="不買">${SHOP_ICONS.cross}</button>
+          <button class="round-btn home bc-yes" aria-label="買">${SHOP_ICONS.check}</button>
+        </div>
+      </div>`
+    root.querySelector('.shop-frame').appendChild(box)
+    const close = () => box.remove()
+    box.querySelector('.bc-backdrop').addEventListener('pointerdown', close)
+    box.querySelector('.bc-no').addEventListener('pointerdown', e => { e.stopPropagation(); close() })
+    box.querySelector('.bc-yes').addEventListener('pointerdown', e => { e.stopPropagation(); close(); onBuy(item) })
+  }
   root.querySelectorAll('[data-wear]').forEach(btn => {
     btn.addEventListener('pointerdown', () => onWear(btn.dataset.wear, btn.dataset.id || null))
   })
