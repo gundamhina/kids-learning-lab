@@ -972,3 +972,10 @@ svg.syl.solo.n3 { height: 1.26em; margin-block: -0.13em; }
 .chart-tone-big { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 400px; color: #2B3A4A; }
 .chart-tone-big .tone { color: #E0955B; transform-box: fill-box; transform-origin: center; animation: chartTonePop .7s .15s both; }
 @keyframes chartTonePop { 0% { transform: scale(0); } 60% { transform: scale(1.35); } 100% { transform: scale(1); } }
+
+/* ---- 寫寫看：「不會寫」按鈕 ---- */
+/* 放在板子左下角，跟「教我寫」同一個位置：按了公布答案之後就換成「教我寫」 */
+.pad-giveup { position: absolute; left: -40px; bottom: -30px; width: 110px; height: 110px; border-radius: 50%; background: #E8B84A var(--paper-tex); border: 5px solid #A8862B; box-shadow: 0 8px 0 #A8862B; display: flex; align-items: center; justify-content: center; filter: url(#wobble); }
+.pad-giveup:active { transform: translateY(5px); box-shadow: 0 3px 0 #A8862B; }
+.pad-learn { background: #4A6FA5 var(--paper-tex); border: 5px solid #34507A; box-shadow: 0 8px 0 #34507A; filter: url(#wobble); }
+.pad-learn:active { box-shadow: 0 3px 0 #34507A; }

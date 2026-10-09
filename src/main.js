@@ -552,6 +552,17 @@ function main () {
     const ms = Date.now() - askedAt
     // 描寫沒蓋好：不算錯，晃一下讓她再寫
     if (symbol === '__miss__') { audio.wrong(); game.shake(); game.sad(); game.offerLearn(() => openLearnOverlay(q)); return }
+    // 寫寫看按「不會寫」：答案已經照筆順寫在板子上；記成不會（跟寫錯一樣算），但不放錯的音效、不晃，
+    // 唸一次答案、出現「教我寫」，她照著寫對才換下一題
+    if (symbol === '__giveup__') {
+      clearIdle()
+      if (firstAttempt) { commit({ target: q.target, ok: false, picked: null, ms, drill: q.drill }); firstAttempt = false }
+      setCombo(0) // 連對斷掉，但不震動
+      game.offerLearn(() => openLearnOverlay(q))
+      const myIndex = index; const myGame = game
+      setTimeout(async () => { if (index !== myIndex || game !== myGame) return; await audio.say(q.target) }, 300)
+      return
+    }
     // 聽寫辨識不出是哪個：算錯但不記混淆對，答案會顯示在板子上讓她照著寫
     if (symbol === '__unknown__') {
       if (firstAttempt) { commit({ target: q.target, ok: false, picked: null, ms, drill: q.drill }); firstAttempt = false }

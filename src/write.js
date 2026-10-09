@@ -18,6 +18,8 @@ const KNOWN_DISTANCE = 12 // 最像的那個要夠像才算「她寫成別的」
 const CHECK_SVG = `<svg viewBox="0 0 24 24" width="70" height="70" fill="#fff"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>`
 // 「教我寫」：一枝筆加一個播放三角形
 const LEARN_BTN_SVG = `<svg viewBox="0 0 24 24" width="52" height="52" fill="#fff"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75z"/><path d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"/><path d="M14 15v6l5-3z"/></svg>`
+// 「不會寫」：一隻眼睛（看答案）
+const GIVEUP_SVG = `<svg viewBox="0 0 24 24" width="54" height="54" fill="#fff"><path d="M12 5C6.5 5 2.7 9.2 1.5 12c1.2 2.8 5 7 10.5 7s9.3-4.2 10.5-7C21.3 9.2 17.5 5 12 5zm0 11.5A4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 0 1 0 9z"/><circle cx="12" cy="12" r="2.4"/></svg>`
 const UNDO_SVG = `<svg viewBox="0 0 24 24" width="44" height="44" fill="#fff"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg>`
 
 const glyphCache = {}
@@ -67,6 +69,7 @@ export function createWrite (root, { color = 0 } = {}) {
        <button class="pad-undo" aria-label="重寫">${UNDO_SVG}</button>
        <button class="pad-ok" aria-label="好了">${CHECK_SVG}</button>
        <button class="pad-learn hidden" aria-label="教我寫">${LEARN_BTN_SVG}</button>
+       <button class="pad-giveup" aria-label="不會寫">${GIVEUP_SVG}</button>
      </div></div>`
   mountBgs(root)
   const dogWrap = root.querySelector('.write-dog')
@@ -130,6 +133,16 @@ export function createWrite (root, { color = 0 } = {}) {
   }
   root.querySelector('.pad-undo').addEventListener('pointerdown', () => { if (!locked) clearInk() })
 
+  // 「不會寫」：還沒寫也能按。擦掉她寫的，照筆順把答案寫出來，交給 main.js 記成不會（不算寫錯，不晃不歪頭）
+  const giveupBtn = root.querySelector('.pad-giveup')
+  giveupBtn.addEventListener('pointerdown', e => {
+    e.stopPropagation()
+    if (locked || !handler) return
+    clearInk()
+    reveal(false)
+    handler('__giveup__', null)
+  })
+
   // 「好了」：把筆跡判成某個符號交給 main.js
   root.querySelector('.pad-ok').addEventListener('pointerdown', () => {
     if (locked || !handler) return
@@ -166,6 +179,7 @@ export function createWrite (root, { color = 0 } = {}) {
   // 範本、答案都用教育部筆順網的字形，板子上只有一種字
   function reveal (ok) {
     tplEl.classList.add('hidden')
+    giveupBtn.classList.add('hidden') // 答案已經在板子上了
     strokesEl.innerHTML = ok
       ? strokeSvg(current.target, { animate: false, color: 'rgba(107,158,107,0.7)', ghost: null }).svg
       : strokeSvg(current.target).svg
@@ -191,6 +205,7 @@ export function createWrite (root, { color = 0 } = {}) {
     tplEl.innerHTML = strokeSvg(question.target, { animate: false, color: '#D5DEE8', ghost: null }).svg
     tplEl.classList.toggle('hidden', !trace)
     learnBtn.classList.add('hidden')
+    giveupBtn.classList.remove('hidden')
     learnFn = null
     padWrap.classList.remove('shake', 'glow')
   }
