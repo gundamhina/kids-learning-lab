@@ -104,12 +104,12 @@ button { font-family: inherit; border: 0; background: none; cursor: pointer; tou
   display: flex; align-items: center; justify-content: center; animation: bob 2.8s ease-in-out infinite; transition: transform .7s cubic-bezier(.3,.9,.4,1.1), opacity .3s; }
 .bubble::after { content: ""; position: absolute; left: 26px; top: 20px; width: 40px; height: 22px; border-radius: 50%; background: rgba(255,255,255,0.95); transform: rotate(-30deg); }
 .bubble span { font-size: 112px; font-weight: 900; color: #2B3A4A; line-height: 1; pointer-events: none; text-shadow: 0 3px 0 rgba(255,255,255,0.8); }
-@keyframes bob { 0%,100% { margin-top: 0; } 50% { margin-top: -18px; } }
+@keyframes bob { 0%,100% { translate: 0 0; } 50% { translate: 0 -18px; } }
 .bubble.hint-loop { animation: bob 2.8s ease-in-out infinite, wiggle 1.2s ease-in-out infinite; }
 .bubble.hint-once { animation: bob 2.8s ease-in-out infinite, wiggle 1.2s ease-in-out 1; }
 @keyframes wiggle { 0%,100% { box-shadow: 0 12px 26px rgba(0,60,120,0.28), inset 0 -14px 24px rgba(60,150,220,0.35); } 50% { box-shadow: 0 0 0 18px rgba(232,200,106,0.9), 0 12px 26px rgba(0,60,120,0.28); } }
 .bubble.shake { animation: bob 2.8s ease-in-out infinite, shake .45s ease-in-out; }
-@keyframes shake { 0%,100% { margin-left: 0; } 20% { margin-left: -16px; } 40% { margin-left: 14px; } 60% { margin-left: -10px; } 80% { margin-left: 8px; } }
+@keyframes shake { 0%,100% { translate: 0 0; } 20% { translate: -16px 0; } 40% { translate: 14px 0; } 60% { translate: -10px 0; } 80% { translate: 8px 0; } }
 .bubble.caught { animation: none; z-index: 5; }
 .bubble.gone { opacity: 0; }
 
@@ -151,7 +151,7 @@ button { font-family: inherit; border: 0; background: none; cursor: pointer; tou
 @keyframes fall { to { top: 110%; transform: rotate(720deg) translateX(40px); } }
 
 /* ---- 大人面板 ---- */
-#screen-panel { background: #F4F7FB; overflow: auto; touch-action: pan-y; user-select: text; }
+#screen-panel { background: #F4F7FB; overflow: auto; touch-action: pan-y; user-select: text; overscroll-behavior: contain; }
 .panel { padding: 24px 40px 60px; color: #1B2B4B; font-size: 18px; }
 .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .panel-head h2 { font-size: 30px; }
@@ -971,7 +971,7 @@ svg.syl.solo.n3 { height: 1.26em; margin-block: -0.13em; }
 .chart-tab svg.syl { font-size: 52px; color: #2B3A4A; }
 .chart-tone-big { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 400px; color: #2B3A4A; }
 .chart-tone-big .tone { color: #E0955B; transform-box: fill-box; transform-origin: center; animation: chartTonePop .7s .15s both; }
-@keyframes chartTonePop { 0% { transform: scale(0); } 60% { transform: scale(1.35); } 100% { transform: scale(1); } }
+@keyframes chartTonePop { 0% { transform: scale(.5); opacity: 0; } 60% { transform: scale(1.35); opacity: 1; } 100% { transform: scale(1); } }
 
 /* ---- 寫寫看：「不會寫」按鈕 ---- */
 /* 放在板子左下角，跟「教我寫」同一個位置：按了公布答案之後就換成「教我寫」 */
@@ -995,3 +995,23 @@ svg.syl.solo.n3 { height: 1.26em; margin-block: -0.13em; }
 .bc-btns .round-btn { width: 120px; height: 120px; font-size: 64px; color: #fff; filter: none; }
 .round-btn.bc-no { background: #B32B37 var(--paper-tex); border-color: #7E1F28; box-shadow: 0 8px 0 #7E1F28; }
 .round-btn.bc-no:active { box-shadow: 0 3px 0 #7E1F28; }
+
+/* ================= 動作手感（參考 .claude/skills/emil-design-eng） ================= */
+/* 規則照 skill：按下去立刻有回應、只動 transform／opacity、進場不從 0 長出來、尊重「減少動態」。
+   跟 skill 不一樣的地方：這是給 5 歲小孩的遊戲，答對的慶祝（跳、彩帶、星星）刻意做得比一般介面大、久，不受 300ms 的限制 */
+:root { --ease-out: cubic-bezier(0.23, 1, 0.32, 1); }
+html, body { overscroll-behavior: none; } /* 家長區捲到頂再往下拉，Android 不會整頁重新整理 */
+
+/* 遊戲裡點的東西：手指一按下去就縮一點、放開彈回（120ms）。用 scale 屬性，跟各自原本的 transform 動畫疊在一起不打架 */
+.bubble { transition: transform .7s cubic-bezier(.3,.9,.4,1.1), opacity .3s, scale .12s var(--ease-out); }
+.mole { transition: transform .28s cubic-bezier(.3,1.4,.5,1), scale .12s var(--ease-out); }
+.mcard, .mword, .mpic { transition: scale .12s var(--ease-out); }
+.bubble:not(.caught):not(.gone):active, .mole.up:active, .mcard:not(.open):not(.matched):active,
+.mword:not(.matched):active, .mpic:not(.matched):active { scale: .94; }
+
+/* 電腦設了「減少動態」：一直重複的背景動畫（雲飄、浪、泡泡上下飄、隊員晃、提示閃）只跑一輪就停；
+   答對答錯的短回饋照樣有。教學小手示範是在教怎麼玩，照常重播 */
+@media (prefers-reduced-motion: reduce) {
+  *:not(.tut-scene *), *::before, *::after { animation-iteration-count: 1 !important; }
+  .confetti { display: none; }
+}

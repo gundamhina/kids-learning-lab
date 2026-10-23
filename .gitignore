@@ -1,7 +1,9 @@
 node_modules/
 img/raw/
 releases/
-.claude/
+.claude/*
+# 專案用的 skill（emilkowalski/skills 挑的三個，MIT）要進 git，兩台電腦才都有
+!.claude/skills/
 __pycache__/
 tools/.moe/
 dist/
