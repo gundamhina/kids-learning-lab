@@ -149,6 +149,23 @@ export function stars (state, symbol) {
   return Math.min(Math.round((okCount / history.length) * 5), history.length)
 }
 
+// 間隔複習：熟了（4 顆星以上）的題目，隔 3、7、14、30 天再拿出來考一次。
+// 到期時考對，間隔拉長一級；答錯就回到第一級。mastery 每題記 last（上次出現）、box（現在第幾級）、n（總共出現幾次）
+export const REVIEW_DAYS = [3, 7, 14, 30]
+const DAY_MS = 86400000
+export function reviewDue (state, s, now = Date.now()) {
+  const m = state.mastery[s]
+  if (!m || !m.last || stars(state, s) < 4) return false
+  return now - m.last >= REVIEW_DAYS[Math.min(m.box || 0, REVIEW_DAYS.length - 1)] * DAY_MS
+}
+// 出現過幾次（舊存檔沒有 n，用最近紀錄的筆數）
+function seenCount (state, s) {
+  const m = state.mastery[s]
+  if (!m) return 0
+  return typeof m.n === 'number' ? m.n : (m.history || []).length
+}
+export const MIN_EXPOSURE = 3
+
 function groupAverage (state, group) {
   return group.reduce((sum, s) => sum + stars(state, s), 0) / group.length
 }
@@ -241,13 +258,20 @@ function pairKey (a, b) {
   return [a, b].sort().join('|')
 }
 
-// 一局 5 題。至少 2 題來自最弱的三個符號；有混淆對時，插一題二選一加練。
-export function buildRound (state, rng, size = ROUND_SIZE) {
+// 一局 5 題。一題來自最弱的三個；另一題先給到期該複習的（最久沒出現的優先），沒有就也從最弱的挑；
+// 有混淆對時，插一題二選一加練。其他題照權重抽：越不熟越常出，出現不到 3 次的、到期該複習的也拉高
+export function buildRound (state, rng, size = ROUND_SIZE, now = Date.now()) {
   const pool = activePool(state)
   const tier = TIERS[effectiveTier(state)]
   const optionCount = Math.min(tier.options, pool.length)
   const weakest = [...pool].sort((a, b) => stars(state, a) - stars(state, b)).slice(0, 3)
-  const weightOf = s => Math.pow(6 - stars(state, s), 2)
+  const due = pool.filter(s => reviewDue(state, s, now)).sort((a, b) => state.mastery[a].last - state.mastery[b].last)
+  const weightOf = s => {
+    let w = Math.pow(6 - stars(state, s), 2)
+    if (seenCount(state, s) < MIN_EXPOSURE) w = Math.max(w, 16)
+    if (reviewDue(state, s, now)) w = Math.max(w, 25)
+    return w
+  }
 
   const slots = shuffle([...Array(size).keys()], rng)
   const forced = new Set(slots.slice(0, 2))
@@ -263,8 +287,10 @@ export function buildRound (state, rng, size = ROUND_SIZE) {
       round.push({ target, options: shuffle(pair, rng), idleHint: tier.idleHint, drill: key })
       continue
     }
+    // 強迫的兩格：第一格最弱的；第二格到期該複習的（有的話）
+    const isReviewSlot = forced.has(i) && i === slots[1] && due.length
     const source = forced.has(i) ? weakest : pool
-    const target = weightedPick(source, weightOf, rng)
+    const target = isReviewSlot ? due.shift() : weightedPick(source, weightOf, rng)
     // 詞比較大，最多 4 個選項
     const count = target.includes(' ') ? Math.min(optionCount, 4) : optionCount
     const distractors = pickDistractors(target, pool, count - 1, tier.distract, rng, rng() < tier.similar)
@@ -480,9 +506,13 @@ function adjustTier (tier, recent) {
 // 每題只記第一次點的結果。picked 是她點的符號；drill 是這題若為加練題的混淆對 key。
 // at 是答題時間（毫秒），寫進長期日誌；不給就用現在。
 export function recordAnswer (state, { target, ok, picked, ms, drill = null, at = Date.now() }) {
-  const oldHistory = (state.mastery[target] && state.mastery[target].history) || []
+  const old = state.mastery[target] || {}
+  const oldHistory = old.history || []
   const history = [...oldHistory, { ok, ms }].slice(-HISTORY_CAP)
-  const mastery = { ...state.mastery, [target]: { history } }
+  // 複習級數：到期時考對升一級；答錯回到第一級；沒到期考對維持
+  const box = !ok ? 0 : (reviewDue(state, target, at) ? Math.min((old.box || 0) + 1, REVIEW_DAYS.length - 1) : (old.box || 0))
+  const n = (typeof old.n === 'number' ? old.n : oldHistory.length) + 1
+  const mastery = { ...state.mastery, [target]: { history, last: at, box, n } }
   const log = [...(state.log || []), { at, s: target, ok }].slice(-LOG_CAP)
 
   const confusions = { ...state.confusions }

@@ -7,7 +7,7 @@ import {
   questionReward, roundBonus, comboBonus,
   toneOfSyllable, stripTone, toneTiles, TONE_ORDER, TONE_PARTNER, toneHardness, buildToneRound,
   teamOf, partnerOf, setPartner,
-  syllablesOnlyState, spellTiles, TRACKS, friendWords, buildFriendQuestion,
+  syllablesOnlyState, spellTiles, TRACKS, friendWords, buildFriendQuestion, reviewDue, REVIEW_DAYS,
 } from '../src/scheduler.js';
 import { GROUPS, SYMBOLS, coreOf } from '../src/data.js';
 
@@ -768,5 +768,37 @@ test('符號找朋友：37 個符號都找得到朋友；一題三張圖，只�
       assert.deepEqual(options.filter(w => first(w).includes(sym)), [answer], sym + ' 只能有一個答案')
       assert.equal(new Set(options).size, 3)
     }
+  }
+})
+
+// ---- 間隔複習 ----
+test('間隔複習：熟了的題目隔 3 天到期；到期考對間隔拉長一級，答錯回到第一級', () => {
+  const DAY = 86400000
+  const t0 = new Date(2026, 9, 1, 10).getTime()
+  let s = trackView(createState(), 'listen')
+  for (let k = 0; k < 5; k++) s = recordAnswer(s, { target: 'ㄚ', ok: true, picked: 'ㄚ', ms: 800, at: t0 })
+  assert.equal(reviewDue(s, 'ㄚ', t0 + 2 * DAY), false, '還沒到 3 天')
+  assert.equal(reviewDue(s, 'ㄚ', t0 + 3 * DAY), true)
+  s = recordAnswer(s, { target: 'ㄚ', ok: true, picked: 'ㄚ', ms: 800, at: t0 + 3 * DAY })
+  assert.equal(s.mastery['ㄚ'].box, 1)
+  assert.equal(reviewDue(s, 'ㄚ', t0 + 9 * DAY), false, '第二級要隔 7 天')
+  assert.equal(reviewDue(s, 'ㄚ', t0 + 10 * DAY), true)
+  s = recordAnswer(s, { target: 'ㄚ', ok: false, picked: 'ㄛ', ms: 800, at: t0 + 10 * DAY })
+  assert.equal(s.mastery['ㄚ'].box, 0)
+  assert.equal(REVIEW_DAYS[0], 3)
+})
+
+test('間隔複習：到期的題目一定會排進這一局', () => {
+  const DAY = 86400000
+  const t0 = new Date(2026, 9, 1, 10).getTime()
+  let s = trackView(createState(), 'listen')
+  for (const sym of GROUPS[0]) for (let k = 0; k < 5; k++) s = recordAnswer(s, { target: sym, ok: true, picked: sym, ms: 800, at: t0 })
+  // ㄛ 很久沒出現；其他三個剛練過
+  for (const sym of ['ㄚ', 'ㄜ', 'ㄝ']) s = recordAnswer(s, { target: sym, ok: true, picked: sym, ms: 800, at: t0 + 20 * DAY })
+  let seed = 3
+  const rng = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 }
+  for (let k = 0; k < 10; k++) {
+    const round = buildRound({ ...s, rangeGroups: [0] }, rng, 5, t0 + 21 * DAY)
+    assert.ok(round.some(q => q.target === 'ㄛ'), '到期的 ㄛ 要出現')
   }
 })
