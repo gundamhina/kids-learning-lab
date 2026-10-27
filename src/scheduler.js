@@ -1,7 +1,7 @@
 // 出題邏輯：熟練度、解鎖、加權出題、混淆對加練、階級升降。
 // 純函式，不碰 DOM，不碰 localStorage。所有函式回傳新狀態，不改舊的。
 
-import { GROUPS, SYMBOLS, SIMILAR_SHAPE, SIMILAR_SOUND, coreOf, WORD_ICON } from './data.js'
+import { GROUPS, SYMBOLS, SIMILAR_SHAPE, SIMILAR_SOUND, coreOf, WORD_ICON, WORDS, EASY_PICTURE_WORDS } from './data.js'
 
 export const HISTORY_CAP = 10
 export const RECENT_CAP = 10
@@ -26,8 +26,9 @@ export const TIERS = [
 // 聽（釣魚、打地鼠）、讀（唸給狗狗聽）、寫（寫給狗狗看）、詞（連連看、填空）、調（聲調填空）、拼（拼拼看）各軌分開記，練的是不同的東西。
 // 調軌也是拿詞出題，但記的是「這個詞的聲調會不會」，所以不跟詞軌共用星星。
 // 拼軌拿結合韻和拼讀字出題，記的是「聽到這個音，拼不拼得出來」。
-export const TRACKS = ['listen', 'read', 'write', 'word', 'tone', 'spell']
-export const TRACK_NAMES = { listen: '聽', read: '讀', write: '寫', word: '詞', tone: '調', spell: '拼' }
+// 認軌（符號找朋友）記的是「看到這個符號，知不知道哪些詞有這個音」。
+export const TRACKS = ['listen', 'read', 'write', 'word', 'tone', 'spell', 'friend']
+export const TRACK_NAMES = { listen: '聽', read: '讀', write: '寫', word: '詞', tone: '調', spell: '拼', friend: '認' }
 const TRACK_FIELDS = ['mastery', 'confusions', 'tier', 'recent', 'log']
 export const LOG_CAP = 3000
 
@@ -313,6 +314,35 @@ export function wordsOnlyState (state, { pictures = true } = {}) {
   }
   if (!chosen.length) chosen = wordIdx
   return { ...state, rangeGroups: chosen }
+}
+
+// ---- 符號找朋友 ----
+// 三張圖卡裡，「第一個字的注音有這個符號」的那張是朋友（ㄇ→貓 ㄇㄠ、ㄠ→小鳥 ㄋㄧㄠˇ 不算，第一個字是「小」）。
+// 另外兩張的第一個字都不能有這個符號。階級高時（看這階的 similar 機率），其中一張故意挑第一個字有它易混音的詞（ㄅ配開頭ㄆ的詞）
+const PICTURE_WORDS = WORDS.filter(w => WORD_ICON[w])
+const firstSyllable = w => coreOf(w.split(' ')[0])
+export function friendWords (symbol, words = PICTURE_WORDS) {
+  return words.filter(w => firstSyllable(w).includes(symbol))
+}
+// 圖都用一眼叫得出名字的詞；好認的朋友不到兩個的符號（ㄗ），答案才從全部有圖的詞挑
+export function buildFriendQuestion (symbol, tier, rng, words = EASY_PICTURE_WORDS) {
+  const t = TIERS[Math.max(0, Math.min(TIERS.length - 1, tier))]
+  let friends = friendWords(symbol, words)
+  if (friends.length < 2) friends = friendWords(symbol, PICTURE_WORDS)
+  const answer = friends[Math.floor(rng() * friends.length)]
+  const others = words.filter(w => !firstSyllable(w).includes(symbol))
+  const partners = [...partnersOf(symbol, SIMILAR_SOUND), ...partnersOf(symbol, SIMILAR_SHAPE)]
+  const picked = []
+  if (partners.length && rng() < t.similar) {
+    const near = others.filter(w => partners.some(p => firstSyllable(w).includes(p)))
+    if (near.length) picked.push(near[Math.floor(rng() * near.length)])
+  }
+  const rest = shuffle(others.filter(w => !picked.includes(w) && WORD_ICON[w] !== WORD_ICON[answer]), rng)
+  while (picked.length < 2 && rest.length) {
+    const w = rest.pop()
+    if (!picked.some(p => WORD_ICON[p] === WORD_ICON[w])) picked.push(w)
+  }
+  return { answer, options: shuffle([answer, ...picked], rng) }
 }
 
 // ---- 拼拼看 ----

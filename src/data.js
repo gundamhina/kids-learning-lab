@@ -45,6 +45,11 @@ export const SYLLABLES = SYLLABLE_GROUPS.flatMap(g => g.items)
 // 詞（有圖的）；只聽不看圖的另外放
 export const WORDS = WORD_GROUPS.flatMap(g => g.items)
 export const LISTEN_WORDS = LISTEN_WORD_GROUPS.flatMap(g => g.items)
+// 看圖一眼就叫得出名字的詞（符號找朋友用）：東西、動物、食物、身體、交通這類。
+// 家人、人物、動作、心情、顏色、地方這幾組的圖小孩分不清楚（爸爸和叔叔長得一樣），不用
+const EASY_PICTURE_GROUPS = ['動物', '食物', '身體', '三個字', '交通', '農場動物', '動物園', '點心', '蔬果', '衣服', '家裡', '大自然', '海邊和小蟲',
+  '鳥和野生動物', '樂器', '玩具和節日', '天空和大地', '餐桌', '蔬果二', '家裡二', '更多動物', '更多動物二', '家裡三', '東西和點心']
+export const EASY_PICTURE_WORDS = WORD_GROUPS.filter(g => EASY_PICTURE_GROUPS.includes(g.name)).flatMap(g => g.items).filter(w => WORD_ICON[w])
 export const TONE_MARKS = 'ˊˇˋ˙'
 // 去掉調號，只留符號
 export function coreOf (sym) { return sym.replace(/[ˊˇˋ˙]/g, '') }

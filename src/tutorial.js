@@ -58,6 +58,17 @@ const SCENES = {
     ${sparks('tut-mem-s', 300, 200)}
     ${hand('tut-mem-hand')}`,
 
+  // 符號找朋友：看上面的符號，點第一個字有這個音的那張圖（跟釣魚同一套點擊動畫，正解在 250,262）
+  friend: `
+    <rect x="270" y="20" width="100" height="100" rx="18" fill="#FFFDF7" stroke="${WOOD}" stroke-width="6"/>
+    <text x="320" y="72" font-size="64" ${FONT} fill="${INK}" text-anchor="middle" dominant-baseline="central">ㄇ</text>
+    <g class="tut-fish-b1"><rect x="200" y="212" width="100" height="100" rx="18" fill="#FFFDF7" stroke="${WOOD}" stroke-width="5"/>
+    <text x="250" y="264" font-size="62" text-anchor="middle" dominant-baseline="central">🐱</text></g>
+    <rect x="370" y="212" width="100" height="100" rx="18" fill="#FFFDF7" stroke="${WOOD}" stroke-width="5"/>
+    <text x="420" y="264" font-size="62" text-anchor="middle" dominant-baseline="central">🍎</text>
+    ${ripple('tut-fish-r', 250, 262)}${sparks('tut-fish-s', 250, 262)}
+    ${hand('tut-fish-hand')}`,
+
   // 從詞拉一條線到圖
   match: `
     <rect x="60" y="148" width="190" height="110" rx="20" fill="#FFFDF7" stroke="${WOOD}" stroke-width="6"/>

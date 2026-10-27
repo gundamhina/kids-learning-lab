@@ -1,6 +1,6 @@
 // 把所有模組接起來：使用者、狀態、出題、三種玩法、畫面切換。
 
-import { addBones, buyItem, wearItem, teamOf, partnerOf, setPartner, recordRound, claimDaily, dailyView, DAILY_GOAL, markSeen, recommendTrack, dayKey, questionReward, roundBonus, comboBonus, buildRound, recordAnswer, resetProgress, pickSymbols, singleSymbolState, noWordsState, wordsOnlyState, activePool, effectiveTier, trackView, applyTrack, toneOfSyllable, toneTiles, buildToneRound, syllablesOnlyState, spellTiles } from './scheduler.js'
+import { addBones, buyItem, wearItem, teamOf, partnerOf, setPartner, recordRound, claimDaily, dailyView, DAILY_GOAL, markSeen, recommendTrack, dayKey, questionReward, roundBonus, comboBonus, buildRound, recordAnswer, resetProgress, pickSymbols, singleSymbolState, noWordsState, wordsOnlyState, activePool, effectiveTier, trackView, applyTrack, toneOfSyllable, toneTiles, buildToneRound, syllablesOnlyState, spellTiles, buildFriendQuestion } from './scheduler.js'
 import { createStore } from './store.js'
 import { createAudio } from './audio.js'
 import { createFishing } from './fishing.js'
@@ -13,6 +13,7 @@ import { createChart } from './chart.js'
 import { createMatchLine } from './matchline.js'
 import { createFillBlank } from './fillblank.js'
 import { createSpell } from './spell.js'
+import { createFriend } from './friend.js'
 import { renderShop } from './shop.js'
 import { setOutfit, boneSvg, ownedMates, bgHtml, UX_ICONS } from './art.js'
 import { burstAt, flyBones, bump, buzz } from './fx.js'
@@ -25,7 +26,7 @@ const SETTINGS_KEY = 'zhuyin-rescue-settings'
 const MEMORY_PAIRS = 5
 // 每個玩法練哪一軌：聽（釣魚、打地鼠）、讀（唸給狗狗聽）、寫（寫給狗狗看）、詞（連連看、填空）、調（聲調填空）、拼（拼拼看）
 // 翻牌只借「聽」那一軌的出題池挑符號，不寫任何紀錄進去
-const TRACK_OF = { fishing: 'listen', whack: 'listen', memory: 'listen', speak: 'read', write: 'write', match: 'word', fill: 'word', tone: 'tone', learn: 'write', spell: 'spell' }
+const TRACK_OF = { fishing: 'listen', whack: 'listen', memory: 'listen', speak: 'read', write: 'write', match: 'word', fill: 'word', tone: 'tone', learn: 'write', spell: 'spell', friend: 'friend' }
 // 純練習的玩法：不記進度、沒有玩完的骨頭、不算今天的腳印
 const PRACTICE_KINDS = ['memory', 'learn']
 const LEARN_SYMBOLS = 3 // 學寫字一局教幾個符號
@@ -146,6 +147,7 @@ function main () {
     if (t === 'word') return odd ? 'fill' : 'match'
     if (t === 'tone') return 'tone'
     if (t === 'spell') return 'spell'
+    if (t === 'friend') return 'friend'
     if (t === 'read') return canSpeak() ? 'speak' : 'match'
     return 'write'
   }
@@ -414,6 +416,7 @@ function main () {
     if (which === 'fill') return runFill('syllable')
     if (which === 'tone') return runFill('tone')
     if (which === 'spell') return runSpell()
+    if (which === 'friend') return runFriend()
     runQuestions(which)
   }
 
@@ -858,6 +861,80 @@ function main () {
       if (step >= 3) sayDemo(q.target, myGame)
     })
     askFill()
+  }
+
+  // ---- 符號找朋友：看符號（狗狗先唸），從三張圖卡選第一個字有這個音的。記在「認」軌，對錯算在符號上 ----
+  function runFriend () {
+    game = createFriend(playArea, { color: myColor() })
+    replayBtn.classList.remove('hidden') // 再聽一次符號的音
+    round = buildRound(singleSymbolState(currentView()), Math.random)
+    index = 0
+    starTotal = round.length
+    setStars()
+    let answer = null
+    const askFriend = async () => {
+      const q = round[index]
+      const myIndex = index
+      const myGame = game
+      const fq = buildFriendQuestion(q.target, effectiveTier(currentView()), Math.random)
+      answer = fq.answer
+      firstAttempt = true
+      wrongs = 0
+      clearIdle()
+      busy = true
+      game.start(q.target, fq.options, answer)
+      await wait(350)
+      let opened = false
+      const open = () => {
+        if (opened || index !== myIndex || game !== myGame) return
+        opened = true
+        game.unlock()
+        askedAt = Date.now()
+        busy = false
+      }
+      await audio.say(q.target, { onStart: open })
+      open()
+      if (index === myIndex && game === myGame) armIdle(q, myIndex, myGame)
+    }
+    game.onAnswer(async (word, el) => {
+      if (busy) return
+      const q = round[index]
+      const myGame = game
+      const ms = Date.now() - askedAt
+      if (word === answer) {
+        busy = true
+        clearIdle()
+        game.lock()
+        const bones = questionReward(currentView(), q.target, firstAttempt)
+        if (firstAttempt) commit({ target: q.target, ok: true, picked: q.target, ms, drill: q.drill })
+        rewardCorrect(firstAttempt, el, bones)
+        audio.ding()
+        await game.celebrate(word)
+        if (game !== myGame) return
+        await audio.say(q.target) // 把符號和詞連在一起唸：「ㄇ，貓」
+        if (game !== myGame) return
+        await audio.say(word)
+        if (game !== myGame) return
+        index++
+        if (index >= round.length) return finishRound()
+        askFriend()
+        return
+      }
+      if (firstAttempt) { commit({ target: q.target, ok: false, picked: null, ms, drill: q.drill }); firstAttempt = false }
+      // 三級提示：錯第一次重唸符號，第二次起朋友那張一直發亮，第三次起再示範
+      const step = wrongStep()
+      rewardWrong()
+      audio.wrong()
+      game.shake(word)
+      game.sad()
+      if (step >= 2) game.mark()
+      setTimeout(() => {
+        if (game !== myGame || busy) return
+        if (step >= 3) sayDemo(answer, myGame)
+        else audio.say(q.target)
+      }, 450)
+    })
+    askFriend()
   }
 
   // ---- 拼拼看：聽一個音，照順序（由上往下）把符號拖進空格拼出來 ----

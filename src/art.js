@@ -423,6 +423,21 @@ export function cardArt (kind) {
   <path d="M252 300 q34 -34 -8 -60" fill="none" stroke="#E0955B" stroke-width="5" stroke-dasharray="6 6"/>
 </svg>`
   }
+  if (kind === 'friend') {
+    return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="400" fill="#F3E4C2"/>
+  <rect x="90" y="40" width="120" height="120" rx="20" fill="#FFFDF7" stroke="#B08A63" stroke-width="6"/>
+  <text x="150" y="122" text-anchor="middle" font-size="76" font-weight="900" fill="#2B3A4A" font-family="Microsoft JhengHei, sans-serif">ㄇ</text>
+  <rect x="20" y="250" width="78" height="78" rx="16" fill="#FFFDF7" stroke="#B08A63" stroke-width="5"/>
+  <rect x="111" y="250" width="78" height="78" rx="16" fill="#FFF3B0" stroke="#E0955B" stroke-width="6"/>
+  <rect x="202" y="250" width="78" height="78" rx="16" fill="#FFFDF7" stroke="#B08A63" stroke-width="5"/>
+  <text x="59" y="305" text-anchor="middle" font-size="46">\u{1F34E}</text>
+  <text x="150" y="305" text-anchor="middle" font-size="46">\u{1F431}</text>
+  <text x="241" y="305" text-anchor="middle" font-size="46">\u{1F697}</text>
+  <path d="M150 168 v70" fill="none" stroke="#E0955B" stroke-width="5" stroke-dasharray="7 7"/>
+  <path d="M138 226 L150 242 L162 226" fill="none" stroke="#E0955B" stroke-width="5"/>
+</svg>`
+  }
   if (kind === 'tone') {
     return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
   <rect width="300" height="400" fill="#F3E4C2"/>
