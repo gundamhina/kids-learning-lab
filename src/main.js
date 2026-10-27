@@ -482,6 +482,14 @@ function main () {
   let round = []
   let index = 0
   let firstAttempt = true
+  // 答錯三級提示（2026-10-27 起）：同一題錯第 1 次，錯的晃、重唸題目；錯第 2 次起，正解一直發亮；
+  // 錯第 3 次以上再加示範：狗狗唸「是這一個」，再唸一次答案
+  let wrongs = 0
+  function wrongStep () { wrongs = Math.min(3, wrongs + 1); return wrongs }
+  async function sayDemo (target, myGame) {
+    await audio.say('是這一個')
+    if (game === myGame) await audio.say(target)
+  }
   let askedAt = 0
   let busy = false
   let idleTimer = null
@@ -522,6 +530,7 @@ function main () {
     const myIndex = index
     const myGame = game
     firstAttempt = true
+    wrongs = 0
     clearIdle()
     busy = true
     game.start(q, { isTrace: kind === 'write' && effectiveTier(currentView()) <= 1 })
@@ -592,21 +601,24 @@ function main () {
       askQuestion()
       return
     }
-    // 答錯：第一次才記錄；錯的晃、狗狗歪頭、重唸一次。不顯示答案，她自己再選。
+    // 答錯：第一次才記錄；錯的晃、狗狗歪頭、重唸一次。錯第二次起正解一直發亮，第三次起再示範（三級提示）
     if (firstAttempt) {
       commit({ target: q.target, ok: false, picked: symbol, ms, drill: q.drill })
       firstAttempt = false
     }
+    const step = wrongStep()
     rewardWrong()
     audio.wrong()
     game.shake(symbol)
     game.sad()
+    if (step >= 2 && game.mark) game.mark(q.target)
     if (kind === 'write') game.offerLearn(() => openLearnOverlay(q))
     const myIndex = index
     const myGame = game
     setTimeout(async () => {
       if (index !== myIndex || game !== myGame) return
-      await audio.say(q.target)
+      if (step >= 3 && game.mark) await sayDemo(q.target, myGame)
+      else await audio.say(q.target)
       if (index !== myIndex || game !== myGame) return
       armIdle(q, myIndex, myGame)
     }, 500)
@@ -742,6 +754,7 @@ function main () {
     starTotal = words.length
     setStars()
     const firstTry = {}
+    const wrongsOf = {} // 每個詞各自錯幾次（三級提示）
     for (const w of words) firstTry[w] = true
     busy = false
     game.onPair(async (word, picked) => {
@@ -758,9 +771,13 @@ function main () {
         return
       }
       if (firstTry[word]) { commit({ target: word, ok: false, picked, ms: 0, drill: null }); firstTry[word] = false }
+      // 三級提示：同一個詞錯第一次只晃，第二次起它的圖一直發亮，第三次起再示範（唸「是這一個」和這個詞）
+      wrongsOf[word] = Math.min(3, (wrongsOf[word] || 0) + 1)
       rewardWrong()
       audio.wrong()
       game.markWrong(word, picked)
+      if (wrongsOf[word] >= 2) game.markAnswer(word)
+      if (wrongsOf[word] >= 3) sayDemo(word, game)
     })
     game.onPicTap(w => { if (!busy) audio.say(w) }) // 點圖聽這個詞怎麼唸
     game.onDone(finishRound)
@@ -797,6 +814,7 @@ function main () {
         tiles.sort(() => Math.random() - 0.5)
       }
       firstAttempt = true
+      wrongs = 0
       busy = true
       game.start(q, { blankIndex: bi, tiles, mode })
       // 只聽不看圖的詞：狗狗先唸一次再開放作答（點喇叭可以再聽）
@@ -830,10 +848,14 @@ function main () {
         return
       }
       if (firstAttempt) { commit({ target: q.target, ok: false, picked: null, ms: 0, drill: q.drill }); firstAttempt = false }
+      // 三級提示：看的練習錯第一次只晃（唸出來等於說答案），第二次起正確那塊一直發亮，第三次起再示範
+      const step = wrongStep()
       rewardWrong()
       audio.wrong()
       game.bounce(syl)
       game.sad()
+      if (step >= 2) game.mark(correct)
+      if (step >= 3) sayDemo(q.target, myGame)
     })
     askFill()
   }
@@ -856,6 +878,7 @@ function main () {
       pieces = [...coreOf(q.target)]
       placed = 0
       firstAttempt = true
+      wrongs = 0
       clearIdle()
       busy = true
       game.start(q, { pieces, tiles: spellTiles(q.target, effectiveTier(currentView()), Math.random) })
@@ -880,6 +903,7 @@ function main () {
         game.fill(sym)
         if (placed < pieces.length) {
           audio.say(sym)
+          if (wrongs >= 2) game.mark() // 已經在標答案了：換下一塊亮
           armIdle(q, index, myGame)
           return
         }
@@ -901,10 +925,19 @@ function main () {
         return
       }
       if (firstAttempt) { commit({ target: q.target, ok: false, picked: null, ms: 0, drill: q.drill }); firstAttempt = false }
+      // 三級提示：錯第一次重唸整個音，第二次起下一塊該放的一直發亮，第三次起再示範那一塊的音
+      const step = wrongStep()
       rewardWrong()
       audio.wrong()
       game.bounce(sym)
       game.sad()
+      if (step >= 2) game.mark()
+      const need = pieces[placed]
+      setTimeout(() => {
+        if (game !== myGame || busy) return
+        if (step >= 3) sayDemo(need, myGame)
+        else audio.say(q.target)
+      }, 450)
     })
     askSpell()
   }

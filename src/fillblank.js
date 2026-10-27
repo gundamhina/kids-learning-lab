@@ -138,6 +138,11 @@ export function createFillBlank (root, { color = 0 } = {}) {
     const t = tileOf(syl)
     if (t) t.classList.add('gone')
   }
+  // 答錯第二次起：正確那塊一直發亮
+  function mark (syl) {
+    const t = tileOf(syl)
+    if (t) t.classList.add('answer-glow')
+  }
   // 錯了：彈回原位晃一下
   function bounce (syl) {
     const t = tileOf(syl)
@@ -168,5 +173,5 @@ export function createFillBlank (root, { color = 0 } = {}) {
   function layout () { placeTiles() }
   function destroy () { root.innerHTML = ''; handler = picTapFn = null }
 
-  return { start, unlock, lock, fill, bounce, celebrate, sad, onAnswer, onPicTap, layout, destroy }
+  return { start, unlock, lock, fill, mark, bounce, celebrate, sad, onAnswer, onPicTap, layout, destroy }
 }

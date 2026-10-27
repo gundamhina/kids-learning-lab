@@ -153,6 +153,12 @@ export function createSpell (root, { color = 0 } = {}) {
     t.style.top = (cy - SPELL_TILE / 2) + 'px'
     setTimeout(() => { t.classList.remove('returning', 'shake'); void t.offsetWidth; t.classList.add('shake') }, 300)
   }
+  // 答錯第二次起：下一塊該放的一直發亮（放進去之後換下一塊亮，由 main.js 再叫一次）
+  function mark () {
+    tilesEl.querySelectorAll('.answer-glow').forEach(t => t.classList.remove('answer-glow'))
+    const t = tileOf(pieces[filled])
+    if (t) t.classList.add('answer-glow')
+  }
   // 發呆提示：下一塊該放的晃一下
   function hint () {
     const t = tileOf(pieces[filled])
@@ -179,5 +185,5 @@ export function createSpell (root, { color = 0 } = {}) {
   function layout () { placeTiles() }
   function destroy () { root.innerHTML = ''; handler = null }
 
-  return { start, unlock, lock, fill, complete, bounce, hint, celebrate, sad, onAnswer, layout, destroy }
+  return { start, unlock, lock, fill, complete, bounce, hint, mark, celebrate, sad, onAnswer, layout, destroy }
 }

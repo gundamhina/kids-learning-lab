@@ -1015,3 +1015,11 @@ html, body { overscroll-behavior: none; } /* 家長區捲到頂再往下拉，An
   *:not(.tut-scene *), *::before, *::after { animation-iteration-count: 1 !important; }
   .confetti { display: none; }
 }
+
+/* ---- 答錯三級提示：第二次錯起，正解一直發亮（填空磁磚、拼拼看磁磚、連連看的圖） ---- */
+.answer-glow { animation: answerGlow 1.1s ease-in-out infinite; z-index: 2; }
+@keyframes answerGlow { 0%, 100% { box-shadow: 0 0 0 4px rgba(232,200,106,.55), 0 6px 0 var(--wood); } 50% { box-shadow: 0 0 0 16px rgba(232,200,106,.9), 0 6px 0 var(--wood); } }
+/* 減少動態時動畫只跑一輪：發亮改成不會動的金框，正解照樣標得出來 */
+@media (prefers-reduced-motion: reduce) {
+  .answer-glow, .bubble.hint-loop, .mole.hint-loop { box-shadow: 0 0 0 12px rgba(232,200,106,.9) !important; }
+}

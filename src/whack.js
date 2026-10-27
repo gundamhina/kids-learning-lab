@@ -53,6 +53,7 @@ export function createWhack (root, { color = 0, slow = 1 } = {}) {
   let timer = null
   let queue = []
   let glowOnce = false
+  let marked = false // 答錯兩次以上：這一題的正解每次冒出來都發亮
 
   function layout () {
     holesFor().forEach(([x, y], i) => {
@@ -104,7 +105,7 @@ export function createWhack (root, { color = 0, slow = 1 } = {}) {
     mole.dataset.symbol = sym
     mole.querySelector('span').innerHTML = symbolMarkup(sym)
     mole.classList.remove('shake', 'hit', 'hint-loop')
-    if (sym === current.target && glowOnce) {
+    if (sym === current.target && (glowOnce || marked)) {
       mole.classList.add('hint-loop')
       glowOnce = false
     }
@@ -123,6 +124,7 @@ export function createWhack (root, { color = 0, slow = 1 } = {}) {
     locked = true
     queue = []
     glowOnce = false
+    marked = false
     stopLoop()
     hideAll()
     moles.forEach(m => m.classList.remove('hit', 'shake', 'hint-loop'))
@@ -144,6 +146,12 @@ export function createWhack (root, { color = 0, slow = 1 } = {}) {
       return
     }
     glowOnce = true
+  }
+  // 答錯第二次起：正解每次冒出來都發亮，直到打中
+  function mark () {
+    marked = true
+    const m = moleOf(current.target)
+    if (m) m.classList.add('hint-loop')
   }
   function shake (symbol) {
     const mole = moleOf(symbol)
@@ -174,5 +182,5 @@ export function createWhack (root, { color = 0, slow = 1 } = {}) {
   function onAnswer (fn) { handler = fn }
   function destroy () { stopLoop(); hideAll(); root.innerHTML = ''; handler = null }
 
-  return { start, unlock, lock, hint, shake, celebrate, sad, onAnswer, layout, destroy }
+  return { start, unlock, lock, hint, mark, shake, celebrate, sad, onAnswer, layout, destroy }
 }

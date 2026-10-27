@@ -140,12 +140,17 @@ export function createMatchLine (root, { color = 0 } = {}) {
     const w = wordsEl.querySelector(`.mword[data-symbol="${word}"]`)
     const p = picsEl.querySelector(`.mpic[data-symbol="${pickedWord}"]`)
     if (w) w.classList.add('matched')
-    if (p) p.classList.add('matched')
+    if (p) { p.classList.add('matched'); p.classList.remove('answer-glow') }
     dogWrap.classList.remove('jump')
     void dogWrap.offsetWidth
     dogWrap.classList.add('jump')
     remaining--
     if (remaining === 0 && doneFn) setTimeout(doneFn, 900)
+  }
+  // 同一個詞連錯兩次以上：它的圖一直發亮
+  function markAnswer (word) {
+    const p = picsEl.querySelector(`.mpic[data-symbol="${word}"]`)
+    if (p) p.classList.add('answer-glow')
   }
   function markWrong (word, pickedWord) {
     const l = drawLine(word, pickedWord, 'bad')
@@ -164,6 +169,7 @@ export function createMatchLine (root, { color = 0 } = {}) {
     onPicTap (fn) { picTapFn = fn },
     markCorrect,
     markWrong,
+    markAnswer,
     layout,
     destroy () { root.innerHTML = ''; pairFn = doneFn = picTapFn = null },
   }

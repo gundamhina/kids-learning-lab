@@ -108,6 +108,12 @@ export function createFishing (root, { color = 0 } = {}) {
     b.classList.add('hint-once')
   }
 
+  // 答錯第二次起：正解一直發亮，直到釣起來
+  function mark (symbol) {
+    const b = bubbleOf(symbol)
+    if (b) b.classList.add('hint-loop')
+  }
+
   function shake (symbol) {
     const b = bubbleOf(symbol)
     if (!b) return
@@ -150,5 +156,5 @@ export function createFishing (root, { color = 0 } = {}) {
   function layout () { place() }
   function destroy () { root.innerHTML = ''; handler = null }
 
-  return { start, unlock, lock, hint, shake, celebrate, sad, onAnswer, layout, destroy }
+  return { start, unlock, lock, hint, mark, shake, celebrate, sad, onAnswer, layout, destroy }
 }
