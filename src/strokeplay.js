@@ -55,6 +55,16 @@ export function strokeSvg (symbol, { color = '#E0955B', ghost = 'rgba(43,58,74,0
   }
 }
 
+// 這一筆錯在哪（參考童樂簿的分法）：'direction' 形狀對但從另一頭寫過來；'order' 寫成了這個字的別一筆；
+// 'shape' 都不像。寫對回 null
+export function strokeFault (symbol, k, points) {
+  if (checkStroke(symbol, k, points)) return null
+  if (points.length >= 2 && checkStroke(symbol, k, [...points].reverse())) return 'direction'
+  const n = (STROKES[symbol] || []).length
+  for (let j = 0; j < n; j++) if (j !== k && checkStroke(symbol, j, points)) return 'order'
+  return 'shape'
+}
+
 export function strokeCount (symbol) { return (STROKES[symbol] || []).length }
 
 // 教寫字用的一層：done 前幾筆已經寫好（實心綠）、current 正在教的那一筆（淡橘，起筆處一個會跳的圓點和方向箭頭），
@@ -65,7 +75,7 @@ export function lessonSvg (symbol, { done = 0, current = null, animateCurrent = 
   const id = 'lsn' + (++uid)
   const parts = strokes.map((s, i) => {
     if (i < done) return `<path d="${s.d}" fill="#6B9E6B"/>`
-    if (i === current) return `<path d="${s.d}" fill="rgba(224,149,91,0.28)"/>`
+    if (i === current) return `<path class="lesson-current" d="${s.d}" fill="rgba(224,149,91,0.28)"/>`
     return `<path d="${s.d}" fill="rgba(43,58,74,0.10)"/>`
   })
   let extra = ''

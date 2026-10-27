@@ -1049,3 +1049,8 @@ html, body { overscroll-behavior: none; } /* 家長區捲到頂再往下拉，An
 .cat-head { width: 64px; height: 64px; }
 .cat-head svg { width: 36px; height: 36px; }
 .cat-cards { gap: 10px; }
+
+/* 學寫字寫錯一筆：方向反了，起點圓點跳得更大；寫成別的筆，該寫的這一筆亮起來 */
+.fault-direction .lesson-dot { animation: lessonDotBig .45s ease-in-out 4; }
+@keyframes lessonDotBig { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.6); } }
+.fault-order .lesson-current { fill: rgba(224,149,91,.65); }

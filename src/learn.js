@@ -5,7 +5,7 @@
 
 import { dogSvg, bgHtml } from './art.js'
 import { stagePoint, stageOffset, mountBgs } from './ui.js'
-import { strokeSvg, lessonSvg, checkStroke, strokeCount } from './strokeplay.js'
+import { strokeSvg, lessonSvg, strokeFault, strokeCount } from './strokeplay.js'
 
 const LEARN_PAD = 540 // 板子內部邊長（CSS px，跟 .pad 一樣）
 const LEARN_GUIDE = 30 // 範本距板子邊的距離，範本是 480×480
@@ -13,7 +13,7 @@ const LEARN_INK = 22
 const LEARN_REPLAY_SVG = '<svg viewBox="0 0 24 24" width="44" height="44" fill="#fff"><path d="M8 5v14l11-7z"/></svg>'
 const LEARN_CLOSE_SVG = '<svg viewBox="0 0 24 24" width="40" height="40" fill="#fff"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg>'
 
-export function createLearn (root, { color = 0, overlay = false, onClose = null } = {}) {
+export function createLearn (root, { color = 0, overlay = false, onClose = null, onFault = null } = {}) {
   root.innerHTML = (overlay ? '<div class="learn-backdrop"></div>' : bgHtml('room')) + '<div class="frame">' +
     (overlay ? `<button class="round-btn learn-close" aria-label="回去">${LEARN_CLOSE_SVG}</button>` : '<div class="dog-wrap write-dog">' + dogSvg(color) + '</div>') +
     `<div class="pad-wrap learn-pad">
@@ -97,7 +97,9 @@ export function createLearn (root, { color = 0, overlay = false, onClose = null 
     const pts = drawing.map(toGlyph)
     drawing = null
     locked = true
-    if (checkStroke(symbol, k, pts)) {
+    const fault = strokeFault(symbol, k, pts)
+    guide.classList.remove('fault-direction', 'fault-order')
+    if (!fault) {
       k++
       clearInk()
       if (k >= strokeCount(symbol)) {
@@ -112,9 +114,11 @@ export function createLearn (root, { color = 0, overlay = false, onClose = null 
       showStroke(false)
       return
     }
-    // 寫錯：晃一下、狗狗歪頭，再示範這一筆
+    // 寫錯：晃一下、狗狗歪頭，說出錯在哪（方向反了：起點圓點跳大一點；寫成別的筆：這一筆亮起來），再示範這一筆
     shakePad()
     sad()
+    if (fault !== 'shape') guide.classList.add('fault-' + fault)
+    if (onFault) onFault(fault)
     await wait(450)
     if (gone) return
     clearInk()

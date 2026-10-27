@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { STROKES } from '../src/strokes.js';
-import { checkStroke, strokeCount, strokeSvg } from '../src/strokeplay.js';
+import { checkStroke, strokeCount, strokeSvg, strokeFault } from '../src/strokeplay.js';
 import { SYMBOLS } from '../src/data.js';
 
 test('37 個注音符號都有教育部的筆順，每一筆都有外框和軌跡', () => {
@@ -52,4 +52,13 @@ test('筆順動畫：每一筆一條會長出來的線，總時間照筆數增�
   const four = strokeSvg('ㄓ');
   assert.equal((four.svg.match(/strokeDraw/g) || []).length, 4);
   assert.ok(four.duration > one.duration);
+});
+
+test('學寫字判一筆錯在哪：反方向、寫成別的筆、都不像', () => {
+  const st0 = STROKES['ㄇ'][0];
+  const st1 = STROKES['ㄇ'][1];
+  assert.equal(strokeFault('ㄇ', 0, along(st0.track)), null, '寫對');
+  assert.equal(strokeFault('ㄇ', 0, along(st0.track).reverse()), 'direction');
+  assert.equal(strokeFault('ㄇ', 0, along(st1.track)), 'order');
+  assert.equal(strokeFault('ㄇ', 0, along(st0.track).map(([x, y]) => [x + 900, y + 900])), 'shape');
 });

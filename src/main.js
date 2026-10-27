@@ -864,6 +864,12 @@ function main () {
   }
 
   // ---- 符號找朋友：看符號（狗狗先唸），從三張圖卡選第一個字有這個音的。記在「認」軌，對錯算在符號上 ----
+  // 學寫字寫錯一筆：說出錯在哪。形狀不像就不說話，直接再示範一次
+  function sayStrokeFault (fault) {
+    if (fault === 'direction') audio.say('從圓點開始寫')
+    else if (fault === 'order') audio.say('先寫亮起來的這一筆')
+  }
+
   function runFriend () {
     game = createFriend(playArea, { color: myColor() })
     replayBtn.classList.remove('hidden') // 再聽一次符號的音
@@ -1041,7 +1047,7 @@ function main () {
 
   // ---- 學寫字：純練習。從「寫」軌最不熟的單一符號開始，照教育部筆順一筆一筆教，寫完一個給 1 根 ----
   async function runLearn () {
-    game = createLearn(playArea, { color: myColor() })
+    game = createLearn(playArea, { color: myColor(), onFault: sayStrokeFault })
     replayBtn.classList.add('hidden')
     const symbols = pickSymbols(singleSymbolState(trackView(state, 'write')), Math.random, LEARN_SYMBOLS)
     starTotal = symbols.length
@@ -1093,7 +1099,7 @@ function main () {
       audio.say(q.target)
       armIdle(q, index, myGame)
     }
-    learnOverlay = createLearn(el, { color: myColor(), overlay: true, onClose: close })
+    learnOverlay = createLearn(el, { color: myColor(), overlay: true, onClose: close, onFault: sayStrokeFault })
     audio.say(q.target)
     learnOverlay.teach(q.target).then(close)
   }
