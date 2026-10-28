@@ -52,7 +52,7 @@ export function renderShop (root, { profile, state, tab = 'acc', onTab, onBuy, o
       </button>
       <div class="bones-pill big"><span class="bone-ic">${boneSvg()}</span><b>${state.bones}</b></div>
       <div class="shop-dog dog-wrap">${dogSvg(partner)}</div>
-      <div class="shop-tabs">${tabBtn('acc', '配件')}${tabBtn('mate', '救援隊員')}</div>
+      <div class="shop-tabs">${tabBtn('acc', '配件')}${tabBtn('mate', '夥伴')}</div>
       <div class="shop-grid ${tab === 'mate' ? 'mates-tab' : ''}">${cards}</div>
     </div>`
   mountBgs(root)

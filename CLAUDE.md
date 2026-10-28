@@ -1,4 +1,4 @@
-# 注音救援隊：開發規則
+# Meadow Pals（原注音救援隊）：開發規則
 
 ## 上版
 - **沒說「上版」就只在本地**：改完照常 `npm test`、`npm run build`，可以 commit，但不要 `git push`。push 到 master 會自動部署到 GitHub Pages，女兒玩的就是那一版。
