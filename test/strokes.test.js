@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { STROKES } from '../src/strokes.js';
-import { checkStroke, strokeCount, strokeSvg, strokeFault } from '../src/strokeplay.js';
+import { checkStroke, strokeCount, strokeSvg, strokeFault, lessonSvg } from '../src/strokeplay.js';
+import { LATIN_STROKES, DIGIT_SYMBOLS, UPPER_SYMBOLS } from '../src/latinstrokes.js';
 import { SYMBOLS } from '../src/data.js';
 
 test('37 個注音符號都有教育部的筆順，每一筆都有外框和軌跡', () => {
@@ -61,4 +62,20 @@ test('學寫字判一筆錯在哪：反方向、寫成別的筆、都不像', ()
   assert.equal(strokeFault('ㄇ', 0, along(st0.track).reverse()), 'direction');
   assert.equal(strokeFault('ㄇ', 0, along(st1.track)), 'order');
   assert.equal(strokeFault('ㄇ', 0, along(st0.track).map(([x, y]) => [x + 900, y + 900])), 'shape');
+});
+
+test('數字、英文字母：照中心線寫算對；不是一圈的筆反方向寫不算；畫得出來', () => {
+  for (const s of [...DIGIT_SYMBOLS, ...UPPER_SYMBOLS]) {
+    const strokes = LATIN_STROKES[s];
+    assert.ok(strokes && strokes.length, s);
+    assert.equal(strokeCount(s), strokes.length);
+    strokes.forEach((st, k) => {
+      assert.ok(checkStroke(s, k, along(st.track)), `${s} 第 ${k + 1} 筆照著寫應該算對`);
+      const [x0, y0] = st.track[0];
+      const [x1, y1] = st.track[st.track.length - 1];
+      if (Math.hypot(x1 - x0, y1 - y0) > 500) assert.equal(checkStroke(s, k, along(st.track).reverse()), false, `${s} 第 ${k + 1} 筆反著寫不算`);
+    });
+    assert.ok(strokeSvg(s).svg.includes('stroke-width'), s);
+    assert.ok(lessonSvg(s, { done: 0, current: 0, animateCurrent: true }).svg.includes('lesson-current'), s);
+  }
 });

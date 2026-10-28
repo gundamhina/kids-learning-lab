@@ -17,6 +17,7 @@ import { createFriend } from './friend.js'
 import { createCount, createMake, createCompare } from './mathgames.js'
 import { createPattern, createOdd, createMaze } from './braingames.js'
 import { patternQuestion, oddQuestion, mazeLevel } from './brainq.js'
+import { DIGIT_SYMBOLS, UPPER_SYMBOLS } from './latinstrokes.js'
 import { LETTER_GROUPS, SPELL_GROUPS, ENGLISH_ICON, letterOptions, letterPictureQuestion, wordTiles } from './english.js'
 import { countViewOf, countOptions, makePoolSize, compareQuestion, scatter, COUNT_ICONS } from './mathq.js'
 import { renderShop } from './shop.js'
@@ -33,9 +34,9 @@ const SETTINGS_KEY = 'zhuyin-rescue-settings'
 const MEMORY_PAIRS = 5
 // 每個玩法練哪一軌：聽（釣魚、打地鼠）、讀（唸給狗狗聽）、寫（寫給狗狗看）、詞（連連看、填空）、調（聲調填空）、拼（拼拼看）
 // 翻牌只借「聽」那一軌的出題池挑符號，不寫任何紀錄進去
-const TRACK_OF = { fishing: 'listen', whack: 'listen', memory: 'listen', speak: 'read', write: 'write', match: 'word', fill: 'word', tone: 'tone', learn: 'write', spell: 'spell', friend: 'friend', count: 'count', make: 'count', compare: 'compare', pattern: 'pattern', odd: 'odd', maze: 'maze', letterpic: 'letter', letterhear: 'letter', wordspell: 'eword' }
+const TRACK_OF = { fishing: 'listen', whack: 'listen', memory: 'listen', speak: 'read', write: 'write', match: 'word', fill: 'word', tone: 'tone', learn: 'write', spell: 'spell', friend: 'friend', count: 'count', make: 'count', compare: 'compare', pattern: 'pattern', odd: 'odd', maze: 'maze', letterpic: 'letter', letterhear: 'letter', wordspell: 'eword', numwrite: 'count', abcwrite: 'letter' }
 // 純練習的玩法：不記進度、沒有玩完的骨頭、不算今天的腳印
-const PRACTICE_KINDS = ['memory', 'learn']
+const PRACTICE_KINDS = ['memory', 'learn', 'numwrite', 'abcwrite']
 const LEARN_SYMBOLS = 3 // 學寫字一局教幾個符號
 const MATCH_PAIRS = 4
 // 唸給狗狗聽的狀態訊息，寫給旁邊的大人看
@@ -476,6 +477,8 @@ function main () {
     if (which === 'letterpic') return runLetterPic()
     if (which === 'letterhear') return runLetterHear()
     if (which === 'wordspell') return runWordSpell()
+    if (which === 'numwrite') return runLatinWrite(DIGIT_SYMBOLS, 'num', s => audio.sayText(s))
+    if (which === 'abcwrite') return runLatinWrite(UPPER_SYMBOLS, 'abc', s => audio.sayEnglish(s))
     runQuestions(which)
   }
 
@@ -1453,6 +1456,33 @@ function main () {
       audio.say(sym)
       await game.teach(sym)
       if (game !== myGame) return
+      earned.push(true)
+      setStars()
+      gain(1, game.pad)
+      audio.ding()
+      await wait(300)
+      if (game !== myGame) return
+    }
+    finishRound()
+  }
+
+  // ---- 數字筆順、英文筆順：照順序一次教三個（0、1、2… 或 A、B、C…），接著上次教到的地方；純練習，寫完一個給 1 根 ----
+  async function runLatinWrite (list, key, say) {
+    game = createLearn(playArea, { color: myColor(), onFault: sayStrokeFault })
+    replayBtn.classList.add('hidden')
+    const next = (state.writeNext && state.writeNext[key]) || 0
+    const symbols = [0, 1, 2].map(i => list[(next + i) % list.length])
+    starTotal = symbols.length
+    setStars()
+    const myGame = game
+    for (const [i, sym] of symbols.entries()) {
+      say(sym)
+      await game.teach(sym)
+      if (game !== myGame) return
+      if (!isTeacher()) {
+        state = { ...state, writeNext: { ...(state.writeNext || {}), [key]: (next + i + 1) % list.length } }
+        store.save(profile.id, state)
+      }
       earned.push(true)
       setStars()
       gain(1, game.pad)

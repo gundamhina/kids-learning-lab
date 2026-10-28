@@ -275,10 +275,10 @@ export const CATEGORIES = [
 export const SUBJECTS = [
   { key: 'zhuyin', name: '注音', color: '#4A6FA5', label: 'ㄅㄆㄇ', categories: CATEGORIES },
   { key: 'math', name: '數學', color: '#D9844B', label: '123', categories: [
-    { key: 'count', name: '數數', color: '#D9844B', games: ['count', 'make', 'compare'] },
+    { key: 'count', name: '數數', color: '#D9844B', games: ['count', 'make', 'compare', 'numwrite'] },
   ] },
   { key: 'english', name: '英文', color: '#3F8F8C', label: 'ABC', categories: [
-    { key: 'english', name: '英文', color: '#3F8F8C', games: ['letterpic', 'letterhear', 'wordspell'] },
+    { key: 'english', name: '英文', color: '#3F8F8C', games: ['letterpic', 'letterhear', 'wordspell', 'abcwrite'] },
   ] },
   { key: 'brain', name: '動腦', color: '#8A6FB0', label: '🧩', categories: [
     { key: 'brain', name: '動腦', color: '#8A6FB0', games: ['pattern', 'odd', 'maze'] },
@@ -622,7 +622,7 @@ function bindVolume (root, settings, onSettings, onVolumeTest) {
   })
 }
 // 首頁的玩法卡，老師後台可以挑上課要顯示哪幾個
-export const GAME_NAMES = { fishing: '釣魚', whack: '打地鼠', memory: '翻牌', match: '連連看', fill: '填空', tone: '聲調填空', write: '寫寫看', learn: '學寫字', speak: '唸唸看', chart: '注音表', spell: '拼拼看', friend: '符號找朋友', count: '數一數', make: '做數量', compare: '比多少', pattern: '找規律', odd: '找不同', maze: '迷宮', letterpic: '認字母', letterhear: '聽字母', wordspell: '拼單字' }
+export const GAME_NAMES = { fishing: '釣魚', whack: '打地鼠', memory: '翻牌', match: '連連看', fill: '填空', tone: '聲調填空', write: '寫寫看', learn: '學寫字', speak: '唸唸看', chart: '注音表', spell: '拼拼看', friend: '符號找朋友', count: '數一數', make: '做數量', compare: '比多少', pattern: '找規律', odd: '找不同', maze: '迷宮', letterpic: '認字母', letterhear: '聽字母', wordspell: '拼單字', numwrite: '寫數字', abcwrite: '寫字母' }
 
 export function renderPanel (root, opts) {
   if (opts.profile && opts.profile.adult) return renderTeacherPanel(root, opts)

@@ -564,6 +564,17 @@ export function cardArt (kind) {
   <path d="M220 284 q20 -20 8 -44" fill="none" stroke="#E0955B" stroke-width="5" stroke-dasharray="6 6"/>
 </svg>`
   }
+  if (kind === 'numwrite' || kind === 'abcwrite') {
+    const ch = kind === 'numwrite' ? '2' : 'A'
+    return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="400" fill="#F3E4C2"/>
+  <rect x="40" y="60" width="220" height="220" rx="22" fill="#FFFDF7" stroke="#B08A63" stroke-width="7"/>
+  <text x="150" y="240" text-anchor="middle" font-size="190" font-weight="900" fill="#F3D3B8" font-family="Arial, sans-serif">${ch}</text>
+  <circle cx="${kind === 'numwrite' ? 98 : 150}" cy="${kind === 'numwrite' ? 120 : 100}" r="15" fill="#E0955B" stroke="#FFFDF7" stroke-width="5"/>
+  <rect x="150" y="300" width="110" height="26" rx="8" fill="#E8C86A" transform="rotate(-20 205 313)"/>
+  <path d="M100 330 l8 16 18 2 -13 12 3 18 -16 -9 -16 9 3 -18 -13 -12 18 -2z" fill="#E8C86A"/>
+</svg>`
+  }
   if (kind === 'tone') {
     return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
   <rect width="300" height="400" fill="#F3E4C2"/>
