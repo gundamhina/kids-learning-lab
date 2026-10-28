@@ -84,7 +84,7 @@ export function createStore (storage) {
     },
     importJson (text) {
       const s = JSON.parse(text)
-      if (!isValidState(s)) throw new Error('不是 Meadow Pals 的存檔')
+      if (!isValidState(s)) throw new Error('不是 Kids Learning Lab 的存檔')
       return withWallet(migrate(s))
     },
 
