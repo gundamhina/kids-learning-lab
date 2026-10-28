@@ -171,6 +171,13 @@ export function createAudio (getSettings) {
     await speakTts(text)
   }
 
+  // 唸一句話（數學題的「有幾個？」這類），不找錄音檔，直接語音合成
+  async function sayText (text, { onStart } = {}) {
+    stop()
+    if (onStart) onStart()
+    await speakTts(text)
+  }
+
   function tone (freq, start, dur, type = 'sine', gain = 0.25) {
     if (!ctx) return
     const o = ctx.createOscillator()
@@ -331,5 +338,5 @@ export function createAudio (getSettings) {
   }
   function ready () { return !!ctx }
 
-  return { unlock, ready, say, stop, sourceOf, setMusicVolume, ding, wrong, splash, crunch, flip, cheer, pop, tick, combo, chest, fanfare, startMusic, stopMusic, listVoices: () => { refreshVoices(); return voices } }
+  return { unlock, ready, say, sayText, stop, sourceOf, setMusicVolume, ding, wrong, splash, crunch, flip, cheer, pop, tick, combo, chest, fanfare, startMusic, stopMusic, listVoices: () => { refreshVoices(); return voices } }
 }

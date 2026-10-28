@@ -438,6 +438,52 @@ export function cardArt (kind) {
   <path d="M138 226 L150 242 L162 226" fill="none" stroke="#E0955B" stroke-width="5"/>
 </svg>`
   }
+  if (kind === 'count') {
+    return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="400" fill="#F3E4C2"/>
+  <rect x="30" y="40" width="240" height="190" rx="22" fill="#FFFDF7" stroke="#B08A63" stroke-width="6"/>
+  <text x="90" y="125" text-anchor="middle" font-size="56">\u{1F34E}</text>
+  <text x="200" y="110" text-anchor="middle" font-size="56">\u{1F34E}</text>
+  <text x="150" y="200" text-anchor="middle" font-size="56">\u{1F34E}</text>
+  <circle cx="118" cy="82" r="17" fill="#E0955B"/><text x="118" y="92" text-anchor="middle" font-size="24" font-weight="900" fill="#fff">1</text>
+  <rect x="30" y="280" width="70" height="80" rx="14" fill="#FFF3B0" stroke="#C39A1E" stroke-width="5"/>
+  <rect x="115" y="280" width="70" height="80" rx="14" fill="#CFE8C6" stroke="#466E46" stroke-width="6"/>
+  <rect x="200" y="280" width="70" height="80" rx="14" fill="#FFF3B0" stroke="#C39A1E" stroke-width="5"/>
+  <text x="65" y="340" text-anchor="middle" font-size="50" font-weight="900" fill="#2B3A4A" font-family="Microsoft JhengHei, sans-serif">2</text>
+  <text x="150" y="340" text-anchor="middle" font-size="50" font-weight="900" fill="#2B3A4A" font-family="Microsoft JhengHei, sans-serif">3</text>
+  <text x="235" y="340" text-anchor="middle" font-size="50" font-weight="900" fill="#2B3A4A" font-family="Microsoft JhengHei, sans-serif">4</text>
+</svg>`
+  }
+  if (kind === 'make') {
+    return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="400" fill="#F3E4C2"/>
+  <rect x="24" y="40" width="96" height="110" rx="18" fill="#FFF3B0" stroke="#C39A1E" stroke-width="6"/>
+  <text x="72" y="125" text-anchor="middle" font-size="80" font-weight="900" fill="#2B3A4A" font-family="Microsoft JhengHei, sans-serif">2</text>
+  <rect x="140" y="40" width="136" height="150" rx="18" fill="#FFFDF7" stroke="#B08A63" stroke-width="5" stroke-dasharray="10 8"/>
+  <text x="182" y="130" text-anchor="middle" font-size="48">\u{1F41F}</text>
+  <text x="236" y="130" text-anchor="middle" font-size="48">\u{1F41F}</text>
+  <text x="70" y="310" text-anchor="middle" font-size="48">\u{1F41F}</text>
+  <text x="140" y="310" text-anchor="middle" font-size="48">\u{1F41F}</text>
+  <path d="M100 262 q40 -70 90 -90" fill="none" stroke="#E0955B" stroke-width="5" stroke-dasharray="7 7"/>
+  <circle cx="230" cy="320" r="38" fill="#6B9E6B" stroke="#466E46" stroke-width="5"/>
+  <path d="M213 321 l12 12 l22 -24" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`
+  }
+  if (kind === 'compare') {
+    return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="400" fill="#F3E4C2"/>
+  <rect x="20" y="110" width="124" height="190" rx="20" fill="#FFFDF7" stroke="#466E46" stroke-width="6"/>
+  <rect x="156" y="110" width="124" height="190" rx="20" fill="#FFFDF7" stroke="#B08A63" stroke-width="6"/>
+  <text x="58" y="175" text-anchor="middle" font-size="40">\u{1F353}</text>
+  <text x="106" y="175" text-anchor="middle" font-size="40">\u{1F353}</text>
+  <text x="58" y="235" text-anchor="middle" font-size="40">\u{1F353}</text>
+  <text x="106" y="235" text-anchor="middle" font-size="40">\u{1F353}</text>
+  <text x="82" y="285" text-anchor="middle" font-size="40">\u{1F353}</text>
+  <text x="218" y="225" text-anchor="middle" font-size="52">\u{1F353}</text>
+  <rect x="100" y="30" width="100" height="60" rx="16" fill="#FFFDF7" stroke="#B08A63" stroke-width="5"/>
+  <g fill="#E0955B"><circle cx="126" cy="70" r="8"/><circle cx="143" cy="70" r="8"/><circle cx="160" cy="70" r="8"/><circle cx="177" cy="70" r="8"/><circle cx="135" cy="54" r="8"/><circle cx="152" cy="54" r="8"/><circle cx="169" cy="54" r="8"/></g>
+</svg>`
+  }
   if (kind === 'tone') {
     return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
   <rect width="300" height="400" fill="#F3E4C2"/>

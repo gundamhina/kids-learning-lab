@@ -69,6 +69,41 @@ const SCENES = {
     ${ripple('tut-fish-r', 250, 262)}${sparks('tut-fish-s', 250, 262)}
     ${hand('tut-fish-hand')}`,
 
+  // 數一數：點數字卡（跟釣魚同一套點擊動畫，正解在 250,262）
+  count: `
+    <rect x="200" y="20" width="240" height="150" rx="20" fill="#FFFDF7" stroke="${WOOD}" stroke-width="6"/>
+    <text x="260" y="100" font-size="56" text-anchor="middle" dominant-baseline="central">🐟</text>
+    <text x="320" y="80" font-size="56" text-anchor="middle" dominant-baseline="central">🐟</text>
+    <text x="380" y="110" font-size="56" text-anchor="middle" dominant-baseline="central">🐟</text>
+    <g class="tut-fish-b1"><rect x="205" y="217" width="90" height="90" rx="18" fill="#FFF3B0" stroke="#C39A1E" stroke-width="5"/>
+    <text x="250" y="264" font-size="60" ${FONT} fill="${INK}" text-anchor="middle" dominant-baseline="central">3</text></g>
+    <rect x="345" y="217" width="90" height="90" rx="18" fill="#FFF3B0" stroke="#C39A1E" stroke-width="5"/>
+    <text x="390" y="264" font-size="60" ${FONT} fill="${INK}" text-anchor="middle" dominant-baseline="central">5</text>
+    ${ripple('tut-fish-r', 250, 262)}${sparks('tut-fish-s', 250, 262)}
+    ${hand('tut-fish-hand')}`,
+
+  // 做數量：把東西拖進盒子（跟填空同一套拖曳動畫，盒子的空位在 371,132）
+  make: `
+    <rect x="80" y="40" width="110" height="120" rx="18" fill="#FFF3B0" stroke="#C39A1E" stroke-width="6"/>
+    <text x="135" y="100" font-size="80" ${FONT} fill="${INK}" text-anchor="middle" dominant-baseline="central">1</text>
+    <rect class="tut-fill-blank" x="300" y="60" width="150" height="140" rx="18" fill="none" stroke="${WOOD}" stroke-width="5" stroke-dasharray="12 9"/>
+    <g class="tut-fill-tile"><text x="325" y="304" font-size="60" text-anchor="middle" dominant-baseline="central">🐟</text></g>
+    <text x="475" y="304" font-size="60" text-anchor="middle" dominant-baseline="central">🐟</text>
+    ${sparks('tut-fill-s', 371, 132)}
+    ${hand('tut-fill-hand')}`,
+
+  // 比多少：點比較多的那一框（點擊動畫在 250,262）
+  compare: `
+    <g class="tut-fish-b1"><rect x="150" y="170" width="200" height="190" rx="20" fill="#FFFDF7" stroke="${WOOD}" stroke-width="6"/>
+    <text x="210" y="230" font-size="46" text-anchor="middle" dominant-baseline="central">🍓</text><text x="290" y="230" font-size="46" text-anchor="middle" dominant-baseline="central">🍓</text>
+    <text x="210" y="300" font-size="46" text-anchor="middle" dominant-baseline="central">🍓</text><text x="290" y="300" font-size="46" text-anchor="middle" dominant-baseline="central">🍓</text></g>
+    <rect x="390" y="170" width="200" height="190" rx="20" fill="#FFFDF7" stroke="${WOOD}" stroke-width="6"/>
+    <text x="490" y="265" font-size="46" text-anchor="middle" dominant-baseline="central">🍓</text>
+    <rect x="310" y="40" width="120" height="80" rx="16" fill="#FFFDF7" stroke="${WOOD}" stroke-width="5"/>
+    <g fill="#E0955B"><circle cx="340" cy="94" r="10"/><circle cx="362" cy="94" r="10"/><circle cx="384" cy="94" r="10"/><circle cx="406" cy="94" r="10"/><circle cx="351" cy="72" r="10"/><circle cx="373" cy="72" r="10"/><circle cx="395" cy="72" r="10"/></g>
+    ${ripple('tut-fish-r', 250, 262)}${sparks('tut-fish-s', 250, 262)}
+    ${hand('tut-fish-hand')}`,
+
   // 從詞拉一條線到圖
   match: `
     <rect x="60" y="148" width="190" height="110" rx="20" fill="#FFFDF7" stroke="${WOOD}" stroke-width="6"/>

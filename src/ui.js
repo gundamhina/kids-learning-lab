@@ -1,7 +1,7 @@
 // 選人、首頁、結算、大人面板、舞台縮放。
 
 import { GROUPS, REP_CHAR, GROUP_NAMES, WORD_TEXT } from './data.js'
-import { stars, activePool, effectiveTier, unlockedCount, lifetimeStats, dailyStats, TIERS, TRACKS, TRACK_NAMES } from './scheduler.js'
+import { stars, activePool, effectiveTier, unlockedCount, lifetimeStats, dailyStats, TIERS, ZHUYIN_TRACKS, TRACK_NAMES } from './scheduler.js'
 import { dogSvg, confettiHtml, DOG_COLORS, bgHtml, cardArt, boneSvg, SHOP_ICONS, UX_ICONS, DOG_NAMES } from './art.js'
 
 
@@ -220,7 +220,8 @@ export function renderProfiles (root, { profiles, onPick, onAdd, onGear }) {
 // daily = { rounds, claimed, streak, goal }；recommend = 推薦的玩法；musicOn = 背景音樂開著沒
 // teacher = { tier, range, whack }：老師帳號，首頁上方換成難度、範圍和打地鼠速度，沒有骨頭、寶箱、商店、隊員
 // partner：出任務的隊員（顏色）；team：自己原本那位加上買回家的隊員，首頁下方一排，點誰誰出任務
-export function renderHome (root, { profile, speech = true, bones = 0, partner = null, team = [], daily = null, recommend = null, musicOn = true, teacher = null }) {
+// onRerender：點科目、回科目時要重畫首頁，由 main.js 重畫（按鈕都在 main.js 綁）
+export function renderHome (root, { profile, speech = true, bones = 0, partner = null, team = [], daily = null, recommend = null, musicOn = true, teacher = null, onRerender = null }) {
   const me = partner == null ? profile.color : partner
   const d = daily || { rounds: 0, claimed: false, streak: 0, goal: 10 }
   const chestState = d.claimed ? 'claimed' : d.rounds >= d.goal ? 'ready' : 'locked'
@@ -242,7 +243,7 @@ export function renderHome (root, { profile, speech = true, bones = 0, partner =
     <div class="mates home-mates">${teacher || team.length < 2 ? '' : team.map(c => `<button class="mate ${c === me ? 'on' : ''}" data-partner="${c}" aria-label="${DOG_NAMES[c]}出任務">${dogSvg(c, { mate: c !== me })}</button>`).join('')}</div>
     <button class="gear" id="btn-gear" aria-label="大人面板">${GEAR_SVG}</button>`
   mountBgs(root)
-  bindCategories(root)
+  bindCategories(root, onRerender)
   // 今天推薦：那張卡發光、角落蓋一個腳印；手機兩層時，它所在的類別卡也蓋一個
   if (!teacher && recommend) {
     const stamp = el => {
@@ -253,9 +254,12 @@ export function renderHome (root, { profile, speech = true, bones = 0, partner =
       el.appendChild(badge)
     }
     root.querySelectorAll(`.card[data-game="${recommend}"]`).forEach(stamp)
-    const cat = CATEGORIES.find(c => c.games.includes(recommend))
+    const cat = SUBJECTS.flatMap(s => s.categories).find(c => c.games.includes(recommend))
     const tile = cat && root.querySelector(`.cat-tile[data-cat="${cat.key}"]`)
     if (tile) stamp(tile)
+    const subj = SUBJECTS.find(s => s.categories.includes(cat))
+    const subjTile = subj && root.querySelector(`.subject-tile[data-subject="${subj.key}"]`)
+    if (subjTile) stamp(subjTile)
   }
 }
 
@@ -267,7 +271,16 @@ export const CATEGORIES = [
   { key: 'write', name: '寫', color: '#D9844B', games: ['chart', 'learn', 'write', 'spell'] },
   { key: 'speak', name: '說', color: '#C8553D', games: ['speak'] },
 ]
+// ---- 首頁的科目（2026-10-27 起擴大成多科目）：先選科目，再進科目裡的類別。只有一個科目有玩法時直接進那個科目 ----
+export const SUBJECTS = [
+  { key: 'zhuyin', name: '注音', color: '#4A6FA5', label: 'ㄅㄆㄇ', categories: CATEGORIES },
+  { key: 'math', name: '數學', color: '#D9844B', label: '123', categories: [
+    { key: 'count', name: '數數', color: '#D9844B', games: ['count', 'make', 'compare'] },
+  ] },
+]
+let openSubject = null // 進了哪個科目；從遊戲回來時留在剛剛那一科
 const CAT_ICONS = {
+  count: '<svg viewBox="0 0 24 24" fill="#fff"><circle cx="6" cy="8" r="2.6"/><circle cx="12" cy="8" r="2.6"/><circle cx="18" cy="8" r="2.6"/><circle cx="9" cy="15.5" r="2.6"/><circle cx="15" cy="15.5" r="2.6"/></svg>',
   listen: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9a5 5 0 1 1 10 0c0 3-2.5 4-3 6.5-.4 2-1.8 3.5-4 3.5"/><path d="M10 9.5a2 2 0 1 1 4 0c0 1.3-1.3 1.8-1.5 3"/></svg>',
   look: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3.2" fill="#fff"/></svg>',
   write: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1.2-4.4L16.4 4.4a2 2 0 0 1 2.8 0l.4.4a2 2 0 0 1 0 2.8L8.4 18.8z"/><path d="M14.5 6.3l3.2 3.2"/></svg>',
@@ -286,9 +299,25 @@ function gameCardHtml (game) {
 function homeCardsHtml ({ speech, teacher }) {
   const hidden = teacher ? teacher.hidden || [] : []
   const visible = g => !(g === 'speak' && !speech) && !hidden.includes(g)
-  const cats = CATEGORIES.map(c => ({ ...c, games: c.games.filter(visible) })).filter(c => c.games.length)
+  const subs = SUBJECTS.map(s => ({ ...s, cats: s.categories.map(c => ({ ...c, games: c.games.filter(visible) })).filter(c => c.games.length) }))
+    .filter(s => s.cats.length)
+  if (subs.length === 1) openSubject = subs[0].key
+  if (openSubject && !subs.some(s => s.key === openSubject)) openSubject = null
+  // 還沒選科目：一排大科目卡
+  if (!openSubject) {
+    return `<div class="cards subject-menu" id="cards">${subs.map(s => `
+      <button class="subject-tile" data-subject="${s.key}" style="--cat:${s.color}" aria-label="${s.name}">
+        <span class="subject-label">${s.label}</span><b>${s.name}</b>
+      </button>`).join('')}</div>`
+  }
+  const sub = subs.find(s => s.key === openSubject)
+  const cats = sub.cats
+  // 有好幾個科目時，上面一條「回科目」
+  const bar = subs.length > 1
+    ? `<div class="subject-bar" style="--cat:${sub.color}"><button class="round-btn subject-back" aria-label="回科目">${BACK_SVG}</button><span class="subject-chip">${sub.name}</span></div>`
+    : ''
   if (!isPhone()) {
-    return `<div class="cards cat-grid" id="cards">${cats.map(c => `
+    return bar + `<div class="cards cat-grid ${bar ? 'with-bar' : ''}" id="cards">${cats.map(c => `
       <div class="cat-block" style="--cat:${c.color}">
         <div class="cat-head" title="${c.name}">${CAT_ICONS[c.key]}<b>${c.name}</b></div>
         <div class="cat-cards">${c.games.map(gameCardHtml).join('')}</div>
@@ -299,15 +328,26 @@ function homeCardsHtml ({ speech, teacher }) {
   const tile = c => c.games.length === 1
     ? `<button class="cat-tile" data-cat="${c.key}" data-game="${c.games[0]}" style="--cat:${c.color}" aria-label="${GAME_NAMES[c.games[0]]}">${CAT_ICONS[c.key]}<b>${c.name}</b></button>`
     : `<button class="cat-tile" data-cat="${c.key}" data-open="${c.key}" style="--cat:${c.color}" aria-label="${c.name}">${CAT_ICONS[c.key]}<b>${c.name}</b></button>`
-  return `<div class="cards cat-menu ${openCategory ? 'hidden' : ''}" id="cards">${cats.map(tile).join('')}</div>
+  return (openCategory ? '' : bar) + `<div class="cards cat-menu ${openCategory ? 'hidden' : ''} ${bar ? 'with-bar' : ''}" id="cards">${cats.map(tile).join('')}</div>
     ${cats.filter(c => c.games.length > 1).map(c => `
     <div class="cards cat-sub ${openCategory === c.key ? '' : 'hidden'}" data-sub="${c.key}" style="--cat:${c.color}">
       <div class="cat-sub-top"><button class="round-btn cat-back" aria-label="回類別">${BACK_SVG}</button><div class="cat-sub-head">${CAT_ICONS[c.key]}</div></div>
       <div class="cat-sub-cards">${c.games.map(gameCardHtml).join('')}</div>
     </div>`).join('')}`
 }
-// 手機兩層：點類別打開、點返回回到類別
-function bindCategories (root) {
+// 手機兩層：點類別打開、點返回回到類別。科目：點科目進去、點「回科目」回到科目卡（兩種畫面都有）
+function bindCategories (root, onRerender) {
+  const redraw = () => { if (onRerender) onRerender() }
+  root.querySelectorAll('[data-subject]').forEach(t => t.addEventListener('pointerdown', () => {
+    openSubject = t.dataset.subject
+    openCategory = null
+    redraw()
+  }))
+  root.querySelectorAll('.subject-back').forEach(b => b.addEventListener('pointerdown', () => {
+    openSubject = null
+    openCategory = null
+    redraw()
+  }))
   const menu = root.querySelector('.cat-menu')
   if (!menu) return
   root.querySelectorAll('[data-open]').forEach(t => t.addEventListener('pointerdown', () => {
@@ -518,7 +558,7 @@ function bindVolume (root, settings, onSettings, onVolumeTest) {
   })
 }
 // 首頁的玩法卡，老師後台可以挑上課要顯示哪幾個
-export const GAME_NAMES = { fishing: '釣魚', whack: '打地鼠', memory: '翻牌', match: '連連看', fill: '填空', tone: '聲調填空', write: '寫寫看', learn: '學寫字', speak: '唸唸看', chart: '注音表', spell: '拼拼看', friend: '符號找朋友' }
+export const GAME_NAMES = { fishing: '釣魚', whack: '打地鼠', memory: '翻牌', match: '連連看', fill: '填空', tone: '聲調填空', write: '寫寫看', learn: '學寫字', speak: '唸唸看', chart: '注音表', spell: '拼拼看', friend: '符號找朋友', count: '數一數', make: '做數量', compare: '比多少' }
 
 export function renderPanel (root, opts) {
   if (opts.profile && opts.profile.adult) return renderTeacherPanel(root, opts)
@@ -646,7 +686,7 @@ function renderFamilyPanel (root, { profile, profiles, state, track = 'listen', 
       ${profile ? `
       <div class="panel-row panel-tracks">
         <b>看哪一軌</b>
-        ${TRACKS.map(t => `<button class="track-tab ${t === track ? 'on' : ''}" data-track="${t}">${TRACK_NAMES[t]}</button>`).join('')}
+        ${ZHUYIN_TRACKS.map(t => `<button class="track-tab ${t === track ? 'on' : ''}" data-track="${t}">${TRACK_NAMES[t]}</button>`).join('')}
         <span class="panel-hint-inline">聽＝釣魚、打地鼠；讀＝唸唸看；寫＝寫寫看、學寫字；詞＝連連看、填空；調＝聲調填空。翻牌、學寫字是純練習，不記進度。星星、混淆、階級、解鎖各軌分開算，下面的設定各軌共用。</span>
       </div>
       <div class="panel-row">

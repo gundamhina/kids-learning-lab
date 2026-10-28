@@ -27,8 +27,11 @@ export const TIERS = [
 // 調軌也是拿詞出題，但記的是「這個詞的聲調會不會」，所以不跟詞軌共用星星。
 // 拼軌拿結合韻和拼讀字出題，記的是「聽到這個音，拼不拼得出來」。
 // 認軌（符號找朋友）記的是「看到這個符號，知不知道哪些詞有這個音」。
-export const TRACKS = ['listen', 'read', 'write', 'word', 'tone', 'spell', 'friend']
-export const TRACK_NAMES = { listen: '聽', read: '讀', write: '寫', word: '詞', tone: '調', spell: '拼', friend: '認' }
+// 數學：數軌（數一數、做數量，題目是數字）、比軌（比多少，題目是 more／less）
+export const TRACKS = ['listen', 'read', 'write', 'word', 'tone', 'spell', 'friend', 'count', 'compare']
+export const TRACK_NAMES = { listen: '聽', read: '讀', write: '寫', word: '詞', tone: '調', spell: '拼', friend: '認', count: '數', compare: '比' }
+// 注音的軌（家長區注音進度頁只列這些）
+export const ZHUYIN_TRACKS = ['listen', 'read', 'write', 'word', 'tone', 'spell', 'friend']
 const TRACK_FIELDS = ['mastery', 'confusions', 'tier', 'recent', 'log']
 export const LOG_CAP = 3000
 

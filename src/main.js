@@ -14,6 +14,8 @@ import { createMatchLine } from './matchline.js'
 import { createFillBlank } from './fillblank.js'
 import { createSpell } from './spell.js'
 import { createFriend } from './friend.js'
+import { createCount, createMake, createCompare } from './mathgames.js'
+import { countViewOf, countOptions, makePoolSize, compareQuestion, scatter, COUNT_ICONS } from './mathq.js'
 import { renderShop } from './shop.js'
 import { setOutfit, boneSvg, ownedMates, bgHtml, UX_ICONS } from './art.js'
 import { burstAt, flyBones, bump, buzz } from './fx.js'
@@ -26,7 +28,7 @@ const SETTINGS_KEY = 'zhuyin-rescue-settings'
 const MEMORY_PAIRS = 5
 // 每個玩法練哪一軌：聽（釣魚、打地鼠）、讀（唸給狗狗聽）、寫（寫給狗狗看）、詞（連連看、填空）、調（聲調填空）、拼（拼拼看）
 // 翻牌只借「聽」那一軌的出題池挑符號，不寫任何紀錄進去
-const TRACK_OF = { fishing: 'listen', whack: 'listen', memory: 'listen', speak: 'read', write: 'write', match: 'word', fill: 'word', tone: 'tone', learn: 'write', spell: 'spell', friend: 'friend' }
+const TRACK_OF = { fishing: 'listen', whack: 'listen', memory: 'listen', speak: 'read', write: 'write', match: 'word', fill: 'word', tone: 'tone', learn: 'write', spell: 'spell', friend: 'friend', count: 'count', make: 'count', compare: 'compare' }
 // 純練習的玩法：不記進度、沒有玩完的骨頭、不算今天的腳印
 const PRACTICE_KINDS = ['memory', 'learn']
 const LEARN_SYMBOLS = 3 // 學寫字一局教幾個符號
@@ -148,6 +150,8 @@ function main () {
     if (t === 'tone') return 'tone'
     if (t === 'spell') return 'spell'
     if (t === 'friend') return 'friend'
+    if (t === 'count') return odd ? 'make' : 'count'
+    if (t === 'compare') return 'compare'
     if (t === 'read') return canSpeak() ? 'speak' : 'match'
     return 'write'
   }
@@ -159,7 +163,7 @@ function main () {
     destroyGame()
     const daily = { ...dailyView(state, today()), goal: DAILY_GOAL }
     const teacher = isTeacher() ? { tier: state.lockTier, range: state.rangeGroups || [], hidden: state.hiddenGames || [], whack: whackSpeed() } : null
-    renderHome(homeEl, { profile, speech: canSpeak(), bones: state.bones, partner: myColor(), team: teamOf(state, profile.color), daily, recommend: recommendGame(), musicOn: !settings.musicOff, teacher })
+    renderHome(homeEl, { profile, speech: canSpeak(), bones: state.bones, partner: myColor(), team: teamOf(state, profile.color), daily, recommend: recommendGame(), musicOn: !settings.musicOff, teacher, onRerender: goHome })
     // 點下方的隊員：換牠出任務（配件跟著戴到牠身上）
     homeEl.querySelectorAll('[data-partner]').forEach(b => b.addEventListener('pointerdown', () => {
       const c = parseInt(b.dataset.partner, 10)
@@ -417,6 +421,9 @@ function main () {
     if (which === 'tone') return runFill('tone')
     if (which === 'spell') return runSpell()
     if (which === 'friend') return runFriend()
+    if (which === 'count') return runCount()
+    if (which === 'make') return runMake()
+    if (which === 'compare') return runCompare()
     runQuestions(which)
   }
 
@@ -490,7 +497,7 @@ function main () {
   let wrongs = 0
   function wrongStep () { wrongs = Math.min(3, wrongs + 1); return wrongs }
   async function sayDemo (target, myGame) {
-    await audio.say('是這一個')
+    await audio.sayText('是這一個')
     if (game === myGame) await audio.say(target)
   }
   let askedAt = 0
@@ -866,8 +873,8 @@ function main () {
   // ---- 符號找朋友：看符號（狗狗先唸），從三張圖卡選第一個字有這個音的。記在「認」軌，對錯算在符號上 ----
   // 學寫字寫錯一筆：說出錯在哪。形狀不像就不說話，直接再示範一次
   function sayStrokeFault (fault) {
-    if (fault === 'direction') audio.say('從圓點開始寫')
-    else if (fault === 'order') audio.say('先寫亮起來的這一筆')
+    if (fault === 'direction') audio.sayText('從圓點開始寫')
+    else if (fault === 'order') audio.sayText('先寫亮起來的這一筆')
   }
 
   function runFriend () {
@@ -941,6 +948,143 @@ function main () {
       }, 450)
     })
     askFriend()
+  }
+
+  // ---- 數學 ----
+  // 數一數、做數量記在「數」軌（題目是數字，照星星一組一組解鎖，最多數到幾由家長設，預設 10）；比多少記在「比」軌
+  function countMax () { return state.countMax || 10 }
+  function countRound () { return buildRound(countViewOf(currentView(), countMax()), Math.random) }
+  const pickIcon = () => COUNT_ICONS[Math.floor(Math.random() * COUNT_ICONS.length)]
+  // 一題的共用流程：開題、唸題目、答對換下一題、答錯三級提示（錯 1 次重唸題目、2 次起標出答案、3 次起再示範）
+  function mathQuestions ({ ask, target, isRight, onRight, sayQuestion, demoText }) {
+    let q = null
+    const next = async () => {
+      q = round[index]
+      const myIndex = index
+      const myGame = game
+      firstAttempt = true
+      wrongs = 0
+      clearIdle()
+      busy = true
+      ask(q)
+      await wait(300)
+      let opened = false
+      const open = () => {
+        if (opened || index !== myIndex || game !== myGame) return
+        opened = true
+        game.unlock()
+        askedAt = Date.now()
+        busy = false
+      }
+      await sayQuestion(q, open)
+      open()
+      // 發呆太久（只有最低兩階）：重唸題目、答案晃一下
+      if (q.idleHint && index === myIndex && game === myGame) {
+        idleTimer = setTimeout(async () => {
+          if (index !== myIndex || game !== myGame || busy) return
+          await sayQuestion(q)
+          if (index === myIndex && game === myGame) game.hint()
+        }, q.idleHint * 1000)
+      }
+    }
+    game.onAnswer(async (picked, el) => {
+      if (busy) return
+      const myGame = game
+      const ms = Date.now() - askedAt
+      const t = target(q)
+      if (isRight(q, picked)) {
+        busy = true
+        clearIdle()
+        game.lock()
+        const bones = questionReward(currentView(), t, firstAttempt)
+        if (firstAttempt) commit({ target: t, ok: true, picked: t, ms, drill: null })
+        rewardCorrect(firstAttempt, el, bones)
+        audio.ding()
+        await game.celebrate(picked)
+        if (game !== myGame) return
+        if (onRight) await onRight(q)
+        if (game !== myGame) return
+        index++
+        if (index >= round.length) return finishRound()
+        next()
+        return
+      }
+      if (firstAttempt) { commit({ target: t, ok: false, picked: null, ms, drill: null }); firstAttempt = false }
+      const step = wrongStep()
+      rewardWrong()
+      audio.wrong()
+      game.shake(picked)
+      game.sad()
+      if (step >= 2) game.mark()
+      setTimeout(async () => {
+        if (game !== myGame || busy) return
+        if (step >= 3) { await audio.sayText('是這一個'); if (game === myGame) audio.sayText(demoText(q)) } else sayQuestion(q)
+      }, 450)
+    })
+    next()
+  }
+
+  // 數一數：框裡有幾個東西，從三張數字卡選。點東西會蓋上數字、唸出來，幫她一個一個數
+  function runCount () {
+    game = createCount(playArea, { color: myColor() })
+    replayBtn.classList.add('hidden')
+    round = countRound()
+    index = 0
+    starTotal = round.length
+    setStars()
+    game.onCountTap(k => audio.sayText(String(k)))
+    mathQuestions({
+      ask: q => {
+        const n = Number(q.target)
+        game.start(n, pickIcon(), countOptions(n, effectiveTier(currentView()), Math.random), scatter(n, Math.random))
+      },
+      target: q => q.target,
+      isRight: (q, picked) => picked === Number(q.target),
+      onRight: q => audio.sayText(q.target + '個'),
+      sayQuestion: (q, onStart) => audio.sayText('有幾個？', { onStart }),
+      demoText: q => q.target + '個',
+    })
+  }
+
+  // 做數量：看數字，把東西點進盒子裡，放好按打勾
+  function runMake () {
+    game = createMake(playArea, { color: myColor() })
+    replayBtn.classList.add('hidden')
+    round = countRound()
+    index = 0
+    starTotal = round.length
+    setStars()
+    game.onMove(k => { if (k > 0) audio.sayText(String(k)) })
+    mathQuestions({
+      ask: q => game.start(Number(q.target), pickIcon(), makePoolSize(Number(q.target), effectiveTier(currentView()))),
+      target: q => q.target,
+      isRight: (q, picked) => picked === Number(q.target),
+      onRight: q => audio.sayText(q.target + '個，放好了'),
+      sayQuestion: (q, onStart) => audio.sayText('放' + q.target + '個', { onStart }),
+      demoText: q => '要放' + q.target + '個',
+    })
+  }
+
+  // 比多少：左右兩框，問哪一邊比較多或比較少
+  function runCompare () {
+    game = createCompare(playArea, { color: myColor() })
+    replayBtn.classList.add('hidden')
+    const tier = effectiveTier(trackView(state, 'compare'))
+    round = Array.from({ length: 5 }, (_, i) => {
+      const q = compareQuestion(tier, Math.random, i % 2 ? 'less' : 'more')
+      return { ...q, target: q.ask, idleHint: tier <= 1 ? 10 : 0 }
+    }).sort(() => Math.random() - 0.5)
+    index = 0
+    starTotal = round.length
+    setStars()
+    mathQuestions({
+      ask: q => game.start(q, pickIcon(), { left: scatter(q.left, Math.random), right: scatter(q.right, Math.random) }),
+      target: q => q.target,
+      isRight: (q, picked) => picked === q.answer,
+      onRight: q => audio.sayText(q.ask === 'more' ? '這邊比較多' : '這邊比較少'),
+      sayQuestion: (q, onStart) => audio.sayText(q.ask === 'more' ? '哪一邊比較多？' : '哪一邊比較少？', { onStart }),
+      demoText: q => q.ask === 'more' ? '這邊比較多' : '這邊比較少',
+    })
   }
 
   // ---- 拼拼看：聽一個音，照順序（由上往下）把符號拖進空格拼出來 ----

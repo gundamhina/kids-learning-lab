@@ -1054,3 +1054,75 @@ html, body { overscroll-behavior: none; } /* 家長區捲到頂再往下拉，An
 .fault-direction .lesson-dot { animation: lessonDotBig .45s ease-in-out 4; }
 @keyframes lessonDotBig { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.6); } }
 .fault-order .lesson-current { fill: rgba(224,149,91,.65); }
+
+/* ---- 科目（注音、數學…）：還沒選科目時一排大科目卡；進了科目上面一條「回科目」 ---- */
+.cards.subject-menu { top: 150px; bottom: 150px; gap: 40px; align-content: center; align-items: center; }
+.subject-tile { position: relative; width: 250px; height: 300px; border-radius: 40px; background: var(--cat) var(--paper-tex); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  border: 6px solid color-mix(in srgb, var(--cat) 62%, #2B1D12); box-shadow: 0 12px 0 color-mix(in srgb, var(--cat) 62%, #2B1D12); filter: url(#wobble); transition: scale .12s var(--ease-out); }
+.subject-tile:active { scale: .96; }
+.subject-label { font-size: 76px; font-weight: 900; color: #fff; line-height: 1; letter-spacing: 2px; }
+.subject-tile b { color: #fff; font-size: 46px; font-weight: 900; }
+.subject-tile.recommend { box-shadow: 0 0 0 8px rgba(232,200,106,.95), 0 12px 0 color-mix(in srgb, var(--cat) 62%, #2B1D12); }
+.subject-bar { position: absolute; left: 40px; top: 124px; display: flex; align-items: center; gap: 14px; z-index: 2; }
+.subject-bar .round-btn { width: 64px; height: 64px; background-color: var(--cat); border-color: color-mix(in srgb, var(--cat) 62%, #2B1D12); box-shadow: 0 5px 0 color-mix(in srgb, var(--cat) 62%, #2B1D12); }
+.subject-bar .round-btn svg { width: 36px; height: 36px; }
+.subject-chip { padding: 6px 20px; border-radius: 30px; background: var(--paper) var(--paper-tex); border: 4px solid var(--cat); font-size: 30px; font-weight: 900; color: #2B3A4A; }
+.cards.cat-grid.with-bar { top: 205px; }
+.cards.cat-menu.with-bar { top: 210px; }
+#stage.portrait .cards.subject-menu { flex-direction: column; gap: 30px; }
+#stage.portrait .subject-tile { width: 420px; height: 200px; flex-direction: row; gap: 30px; }
+
+/* ================= 數學：數一數、做數量、比多少 ================= */
+.math-dog { left: 20px; top: 450px; width: 200px; height: 231px; }
+.math-dog .dog, .math-dog .dog-slot .art-slot { width: 200px; height: 231px; }
+.cnt-item { position: absolute; padding: 0; display: flex; align-items: center; justify-content: center; transition: scale .12s var(--ease-out); }
+.cnt-item:active { scale: .92; }
+.cnt-img { width: 100%; height: 100%; pointer-events: none; -webkit-user-drag: none; }
+.cnt-badge { position: absolute; right: -8px; top: -8px; min-width: 42px; height: 42px; padding: 0 6px; border-radius: 21px; background: #E0955B; color: #fff; font-size: 26px; font-weight: 900; display: none; align-items: center; justify-content: center; border: 3px solid var(--paper); pointer-events: none; }
+.cnt-item.counted .cnt-badge { display: flex; animation: pop .3s; }
+.cnt-item.counted .cnt-img { opacity: .5; }
+.math-box { border-radius: 34px; background: var(--paper) var(--paper-tex); border: 6px solid var(--wood); box-shadow: 0 10px 0 var(--wood); }
+
+/* 數一數 */
+.cnt-panel { position: absolute; left: 250px; top: 100px; width: 840px; height: 400px; border-radius: 34px; background: var(--paper) var(--paper-tex); border: 6px solid var(--wood); box-shadow: 0 10px 0 var(--wood); }
+.cnt-panel.glow { box-shadow: 0 0 0 14px rgba(232,200,106,.75), 0 10px 0 var(--wood); }
+.num-cards { position: absolute; left: 0; right: 0; top: 540px; display: flex; justify-content: center; gap: 36px; }
+.num-card { width: 150px; height: 150px; border-radius: 30px; background: #FFF3B0 var(--paper-tex); border: 6px solid #C39A1E; box-shadow: 0 8px 0 #C39A1E; font-family: inherit; font-size: 92px; font-weight: 900; color: #2B3A4A; filter: url(#wobble); transition: scale .12s var(--ease-out); }
+.num-card:active { scale: .94; }
+.num-card.shake { animation: shake .45s ease-in-out; }
+.num-card.right { background-color: #CFE8C6; border-color: #466E46; box-shadow: 0 8px 0 #466E46; }
+
+/* 做數量 */
+.make-target { position: absolute; left: 250px; top: 110px; width: 210px; height: 210px; border-radius: 34px; background: #FFF3B0 var(--paper-tex); border: 6px solid #C39A1E; box-shadow: 0 8px 0 #C39A1E; font-size: 150px; font-weight: 900; color: #2B3A4A; display: flex; align-items: center; justify-content: center; filter: url(#wobble); }
+.make-target.shake { animation: shake .45s ease-in-out; }
+.make-tray { position: absolute; left: 490px; top: 100px; width: 610px; height: 320px; border-radius: 34px; background: rgba(255,253,247,.88) var(--paper-tex); border: 6px dashed var(--wood); display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 8px; padding: 14px; }
+.make-tray.shake { animation: shake .45s ease-in-out; }
+.make-tray.glow { border-style: solid; border-color: #466E46; box-shadow: 0 0 0 14px rgba(107,158,107,.4); }
+.make-pool { position: absolute; left: 250px; top: 450px; width: 760px; height: 210px; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 8px; }
+.make-tray .cnt-item, .make-pool .cnt-item { position: relative; width: 88px; height: 88px; }
+.make-ok { position: absolute; left: 1050px; top: 500px; }
+
+/* 比多少 */
+.cmp-ask { position: absolute; left: 545px; top: 96px; width: 200px; height: 110px; gap: 8px; border-radius: 26px; background: var(--paper) var(--paper-tex); border: 5px solid var(--wood); box-shadow: 0 6px 0 var(--wood); display: flex; align-items: center; justify-content: center; }
+.cmp-side { position: absolute; top: 230px; width: 420px; height: 420px; border-radius: 34px; background: var(--paper) var(--paper-tex); border: 6px solid var(--wood); box-shadow: 0 10px 0 var(--wood); transition: scale .12s var(--ease-out); }
+.cmp-side:active { scale: .97; }
+.cmp-side[data-side="left"] { left: 230px; }
+.cmp-side[data-side="right"] { left: 690px; }
+.cmp-side.shake { animation: shake .45s ease-in-out; }
+.cmp-side.right { border-color: #466E46; box-shadow: 0 0 0 12px rgba(107,158,107,.45), 0 10px 0 #466E46; }
+.cmp-side .cnt-item { pointer-events: none; }
+
+/* 直的：框上下擺 */
+#stage.portrait .math-dog { left: 20px; top: 110px; width: 150px; height: 173px; }
+#stage.portrait .math-dog .dog, #stage.portrait .math-dog .dog-slot .art-slot { width: 150px; height: 173px; }
+#stage.portrait .cnt-panel { left: 40px; top: 300px; width: 720px; height: 600px; }
+#stage.portrait .num-cards { top: 950px; }
+#stage.portrait .make-target { left: 200px; top: 120px; width: 170px; height: 170px; font-size: 120px; }
+#stage.portrait .make-tray { left: 40px; top: 320px; width: 720px; height: 360px; }
+#stage.portrait .make-pool { left: 40px; top: 720px; width: 720px; height: 260px; }
+#stage.portrait .make-ok { left: 600px; top: 160px; }
+#stage.portrait .cmp-ask { left: 315px; top: 120px; }
+#stage.portrait .cmp-side { width: 600px; height: 380px; left: 100px; }
+#stage.portrait .cmp-side[data-side="left"] { top: 270px; }
+#stage.portrait .cmp-side[data-side="right"] { top: 690px; }
+.cmp-ask b { font-size: 40px; font-weight: 900; color: #2B3A4A; }
