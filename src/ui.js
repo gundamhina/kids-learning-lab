@@ -277,9 +277,13 @@ export const SUBJECTS = [
   { key: 'math', name: '數學', color: '#D9844B', label: '123', categories: [
     { key: 'count', name: '數數', color: '#D9844B', games: ['count', 'make', 'compare'] },
   ] },
+  { key: 'brain', name: '動腦', color: '#8A6FB0', label: '🧩', categories: [
+    { key: 'brain', name: '動腦', color: '#8A6FB0', games: ['pattern', 'odd', 'maze'] },
+  ] },
 ]
 let openSubject = null // 進了哪個科目；從遊戲回來時留在剛剛那一科
 const CAT_ICONS = {
+  brain: '<svg viewBox="0 0 24 24" fill="#fff"><path d="M4 4h6v2.2a1.8 1.8 0 1 0 3.6 0V4H20v6h-2.2a1.8 1.8 0 1 0 0 3.6H20V20h-6v-2.2a1.8 1.8 0 1 0-3.6 0V20H4v-6.4h2.2a1.8 1.8 0 1 0 0-3.6H4z"/></svg>',
   count: '<svg viewBox="0 0 24 24" fill="#fff"><circle cx="6" cy="8" r="2.6"/><circle cx="12" cy="8" r="2.6"/><circle cx="18" cy="8" r="2.6"/><circle cx="9" cy="15.5" r="2.6"/><circle cx="15" cy="15.5" r="2.6"/></svg>',
   listen: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9a5 5 0 1 1 10 0c0 3-2.5 4-3 6.5-.4 2-1.8 3.5-4 3.5"/><path d="M10 9.5a2 2 0 1 1 4 0c0 1.3-1.3 1.8-1.5 3"/></svg>',
   look: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3.2" fill="#fff"/></svg>',
@@ -543,6 +547,22 @@ function pageOf (gi, g) {
 const VOLUMES = [['voiceVol', '發音'], ['sfxVol', '音效'], ['musicVol', '背景音樂']]
 const volPct = (settings, key) => Math.round((typeof settings[key] === 'number' ? settings[key] : 1) * 100)
 // 音量那一列：家長區、老師後台都放在最上面
+// ---- 學習設定（每個孩子各自一份）：每局題數、數數範圍、每天玩幾局、延長一次加幾局 ----
+const LEARN_CHOICES = [
+  ['roundSize', '每局題數', [3, 5, 8, 10], 5, n => n + ' 題', '所有玩法共用；翻牌、學寫字、連連看、迷宮有自己的數量。'],
+  ['countMax', '數數範圍', [5, 10, 20], 10, n => '1～' + n, '選大的範圍時，小的數量照樣會出來複習。'],
+  ['dailyLimit', '每天玩幾局', [0, 3, 5, 8, 10], 0, n => n ? n + ' 局' : '不限', '玩滿就收尾：畫面變成晚上，給孩子一個離開螢幕的小任務。孩子看不到這裡的設定。'],
+  ['extendBy', '延長一次加幾局', [1, 2, 3], 2, n => n + ' 局', '收尾畫面的「再玩」：大人要先算對一題才能延長。'],
+]
+function learnSettingsHtml (state) {
+  return `<div class="panel-row panel-learn"><b>學習設定</b>${LEARN_CHOICES.map(([key, label, opts, def, fmt, hint]) => {
+    const cur = state[key] == null ? def : state[key]
+    return `<div class="learn-set"><span class="learn-label">${label}</span>${opts.map(n =>
+      `<button class="track-tab ${n === cur ? 'on' : ''}" data-learn="${key}" data-val="${n}">${fmt(n)}</button>`).join('')}
+      <span class="panel-hint-inline">${hint}</span></div>`
+  }).join('')}</div>`
+}
+
 function volumeRowHtml (settings) {
   return `<div class="panel-row panel-volume"><b>音量</b><span class="vol-row">${VOLUMES.map(([k, label]) => `<label>${label} <input type="range" id="vol-${k}" data-vol="${k}" min="0" max="100" step="5" value="${volPct(settings, k)}"> <span class="vol-val">${volPct(settings, k)}%</span></label>`).join('')}</span></div>`
 }
@@ -558,7 +578,7 @@ function bindVolume (root, settings, onSettings, onVolumeTest) {
   })
 }
 // 首頁的玩法卡，老師後台可以挑上課要顯示哪幾個
-export const GAME_NAMES = { fishing: '釣魚', whack: '打地鼠', memory: '翻牌', match: '連連看', fill: '填空', tone: '聲調填空', write: '寫寫看', learn: '學寫字', speak: '唸唸看', chart: '注音表', spell: '拼拼看', friend: '符號找朋友', count: '數一數', make: '做數量', compare: '比多少' }
+export const GAME_NAMES = { fishing: '釣魚', whack: '打地鼠', memory: '翻牌', match: '連連看', fill: '填空', tone: '聲調填空', write: '寫寫看', learn: '學寫字', speak: '唸唸看', chart: '注音表', spell: '拼拼看', friend: '符號找朋友', count: '數一數', make: '做數量', compare: '比多少', pattern: '找規律', odd: '找不同', maze: '迷宮' }
 
 export function renderPanel (root, opts) {
   if (opts.profile && opts.profile.adult) return renderTeacherPanel(root, opts)
@@ -683,6 +703,7 @@ function renderFamilyPanel (root, { profile, profiles, state, track = 'listen', 
       <div class="panel-row panel-users">
         <b>使用者</b>${usersHtml}
       </div>
+      ${profile ? learnSettingsHtml(state) : ''}
       ${profile ? `
       <div class="panel-row panel-tracks">
         <b>看哪一軌</b>
@@ -767,6 +788,9 @@ function renderFamilyPanel (root, { profile, profiles, state, track = 'listen', 
     root.querySelector('#sel-tier').onchange = e => {
       onStateChange({ lockTier: e.target.value === '' ? null : parseInt(e.target.value, 10) })
     }
+    root.querySelectorAll('[data-learn]').forEach(b => {
+      b.onclick = () => onStateChange({ [b.dataset.learn]: Number(b.dataset.val) })
+    })
     root.querySelector('#bones-minus').onclick = () => onStateChange({ bones: Math.max(0, (state.bones || 0) - 100) })
     root.querySelector('#bones-plus').onclick = () => onStateChange({ bones: (state.bones || 0) + 100, bonesTotal: (state.bonesTotal || 0) + 100 })
     root.querySelector('#tier-down').onclick = () => onStateChange({ tier: Math.max(0, state.tier - 1), recent: [] })
@@ -798,4 +822,49 @@ function renderFamilyPanel (root, { profile, profiles, state, track = 'listen', 
 export function panelMessage (root, text) {
   const el = root.querySelector('#panel-msg')
   if (el) el.textContent = text
+}
+
+// ---- 每天玩滿了：晚上收尾畫面 ----
+// 天空變暗、月亮星星、狗狗睡覺，給一個離開螢幕的小任務（圖＋字，狗狗會唸）。
+// 右下角「再玩」是給大人的：要先算對一題加法才會延長
+export const NIGHT_TASKS = [
+  ['💧', '去喝一口水'], ['🙆', '站起來伸伸懶腰'], ['🪟', '看看窗外遠遠的地方'], ['🤗', '去抱一下家人'],
+  ['🧸', '把玩具收好'], ['🪴', '幫植物澆澆水'], ['📖', '請大人講一個故事'], ['🎵', '唱一首喜歡的歌'],
+]
+export function renderNight (root, { color, task, extendBy, onExtend, onGear }) {
+  root.innerHTML = `
+    <div class="night">
+      <svg class="night-sky" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs><linearGradient id="nsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1B2B4B"/><stop offset="1" stop-color="#3E5F8F"/></linearGradient></defs>
+        <rect width="1200" height="800" fill="url(#nsky)"/>
+        <circle cx="980" cy="150" r="70" fill="#FFF3B0"/><circle cx="1010" cy="130" r="64" fill="#24365C"/>
+        ${[[120, 90], [260, 180], [420, 70], [600, 140], [760, 60], [860, 230], [180, 300], [1100, 320], [520, 260]].map(([x, y], i) =>
+          `<circle class="night-star s${i % 3}" cx="${x}" cy="${y}" r="${4 + (i % 3) * 2}" fill="#FFF3B0"/>`).join('')}
+        <path d="M0 640 q300 -70 600 -10 t600 -20 V800 H0z" fill="#2D4A3A"/>
+      </svg>
+      <div class="night-dog">${dogSvg(color)}<span class="night-zz">z<small>z</small></span></div>
+      <div class="night-card">
+        <div class="night-title">今天練習完囉！</div>
+        <div class="night-task"><span class="night-icon">${task[0]}</span><span>${task[1]}</span></div>
+      </div>
+      <button class="night-more" id="btn-night-more">大人：再玩 ${extendBy} 局</button>
+      <button class="gear" id="btn-gear" aria-label="大人面板">${GEAR_SVG}</button>
+      <div class="night-gate hidden" id="night-gate"></div>
+    </div>`
+  // 大人算一題：兩位數加法，四個選項，答錯換一題
+  const gate = root.querySelector('#night-gate')
+  const ask = () => {
+    const a = 6 + Math.floor(Math.random() * 9)
+    const b = 6 + Math.floor(Math.random() * 9)
+    const opts = [...new Set([a + b, a + b + 1, a + b - 1, a + b + 10])].sort(() => Math.random() - 0.5)
+    gate.innerHTML = `<div class="night-gate-box"><b>大人請算：${a} ＋ ${b} ＝ ？</b>
+      <div class="night-gate-opts">${opts.map(n => `<button data-sum="${n}">${n}</button>`).join('')}</div>
+      <button class="night-gate-close">取消</button></div>`
+    gate.querySelectorAll('[data-sum]').forEach(btn => btn.addEventListener('pointerdown', () => {
+      if (Number(btn.dataset.sum) === a + b) { gate.classList.add('hidden'); onExtend() } else ask()
+    }))
+    gate.querySelector('.night-gate-close').addEventListener('pointerdown', () => gate.classList.add('hidden'))
+  }
+  root.querySelector('#btn-night-more').addEventListener('pointerdown', () => { ask(); gate.classList.remove('hidden') })
+  root.querySelector('#btn-gear').addEventListener('pointerdown', onGear)
 }

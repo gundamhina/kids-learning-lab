@@ -104,6 +104,44 @@ const SCENES = {
     ${ripple('tut-fish-r', 250, 262)}${sparks('tut-fish-s', 250, 262)}
     ${hand('tut-fish-hand')}`,
 
+  // 找規律：一排裡空一格，點缺的那個（點擊動畫在 250,262）
+  pattern: `
+    <rect x="90" y="50" width="460" height="100" rx="18" fill="#FFFDF7" stroke="${WOOD}" stroke-width="6"/>
+    <text x="150" y="100" font-size="52" text-anchor="middle" dominant-baseline="central">🍎</text>
+    <text x="250" y="100" font-size="52" text-anchor="middle" dominant-baseline="central">🍌</text>
+    <text x="350" y="100" font-size="52" text-anchor="middle" dominant-baseline="central">🍎</text>
+    <rect x="420" y="66" width="70" height="70" rx="14" fill="none" stroke="#E0955B" stroke-width="5" stroke-dasharray="9 7"/>
+    <g class="tut-fish-b1"><rect x="205" y="217" width="90" height="90" rx="18" fill="#FFF3B0" stroke="#C39A1E" stroke-width="5"/>
+    <text x="250" y="264" font-size="52" text-anchor="middle" dominant-baseline="central">🍌</text></g>
+    <rect x="345" y="217" width="90" height="90" rx="18" fill="#FFF3B0" stroke="#C39A1E" stroke-width="5"/>
+    <text x="390" y="264" font-size="52" text-anchor="middle" dominant-baseline="central">🍓</text>
+    ${ripple('tut-fish-r', 250, 262)}${sparks('tut-fish-s', 250, 262)}
+    ${hand('tut-fish-hand')}`,
+
+  // 找不同：點不一樣的那張（點擊動畫在 250,262）
+  odd: `
+    <g class="tut-fish-b1"><rect x="190" y="200" width="120" height="120" rx="20" fill="#FFFDF7" stroke="${WOOD}" stroke-width="5"/>
+    <text x="250" y="262" font-size="64" text-anchor="middle" dominant-baseline="central" transform="translate(500 0) scale(-1 1)">🐟</text></g>
+    <rect x="190" y="50" width="120" height="120" rx="20" fill="#FFFDF7" stroke="${WOOD}" stroke-width="5"/>
+    <text x="250" y="112" font-size="64" text-anchor="middle" dominant-baseline="central">🐟</text>
+    <rect x="340" y="50" width="120" height="120" rx="20" fill="#FFFDF7" stroke="${WOOD}" stroke-width="5"/>
+    <text x="400" y="112" font-size="64" text-anchor="middle" dominant-baseline="central">🐟</text>
+    <rect x="340" y="200" width="120" height="120" rx="20" fill="#FFFDF7" stroke="${WOOD}" stroke-width="5"/>
+    <text x="400" y="262" font-size="64" text-anchor="middle" dominant-baseline="central">🐟</text>
+    ${ripple('tut-fish-r', 250, 262)}${sparks('tut-fish-s', 250, 262)}
+    ${hand('tut-fish-hand')}`,
+
+  // 迷宮：按方向鍵走到房子（點擊動畫按的是往右的鍵，在 250,262）
+  maze: `
+    <rect x="300" y="40" width="300" height="200" rx="14" fill="#FFFDF7"/>
+    <path d="M300 40h300v200H300z M400 40v120 M500 140v100" fill="none" stroke="#6E9C58" stroke-width="10" stroke-linecap="round"/>
+    <text x="350" y="190" font-size="54" text-anchor="middle" dominant-baseline="central">🐶</text>
+    <text x="550" y="90" font-size="54" text-anchor="middle" dominant-baseline="central">🏠</text>
+    <g class="tut-fish-b1"><circle cx="250" cy="262" r="44" fill="#8A6FB0" stroke="#5E4880" stroke-width="5"/>
+    <path d="M232 262h36 M254 246l16 16-16 16" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></g>
+    ${ripple('tut-fish-r', 250, 262)}${sparks('tut-fish-s', 250, 262)}
+    ${hand('tut-fish-hand')}`,
+
   // 從詞拉一條線到圖
   match: `
     <rect x="60" y="148" width="190" height="110" rx="20" fill="#FFFDF7" stroke="${WOOD}" stroke-width="6"/>

@@ -28,8 +28,9 @@ export const TIERS = [
 // 拼軌拿結合韻和拼讀字出題，記的是「聽到這個音，拼不拼得出來」。
 // 認軌（符號找朋友）記的是「看到這個符號，知不知道哪些詞有這個音」。
 // 數學：數軌（數一數、做數量，題目是數字）、比軌（比多少，題目是 more／less）
-export const TRACKS = ['listen', 'read', 'write', 'word', 'tone', 'spell', 'friend', 'count', 'compare']
-export const TRACK_NAMES = { listen: '聽', read: '讀', write: '寫', word: '詞', tone: '調', spell: '拼', friend: '認', count: '數', compare: '比' }
+// 動腦：律軌（找規律，題目是題型）、異軌（選卡片找不同，題目是差在哪）、迷軌（迷宮，題目是大小）
+export const TRACKS = ['listen', 'read', 'write', 'word', 'tone', 'spell', 'friend', 'count', 'compare', 'pattern', 'odd', 'maze']
+export const TRACK_NAMES = { listen: '聽', read: '讀', write: '寫', word: '詞', tone: '調', spell: '拼', friend: '認', count: '數', compare: '比', pattern: '律', odd: '異', maze: '迷' }
 // 注音的軌（家長區注音進度頁只列這些）
 export const ZHUYIN_TRACKS = ['listen', 'read', 'write', 'word', 'tone', 'spell', 'friend']
 const TRACK_FIELDS = ['mastery', 'confusions', 'tier', 'recent', 'log']
@@ -601,7 +602,9 @@ export function recordRound (state, today) {
   const d = dailyView(s, today)
   const st = s.streak
   const streak = st.last === today ? st : { last: today, count: st.last === prevDay(today) ? st.count + 1 : 1 }
-  return { ...s, daily: { date: today, rounds: d.rounds + 1, claimed: d.claimed }, streak }
+  // extra：家長在晚上收尾畫面延長的局數（今天才算）
+  const extra = s.daily && s.daily.date === today ? s.daily.extra || 0 : 0
+  return { ...s, daily: { date: today, rounds: d.rounds + 1, claimed: d.claimed, extra }, streak }
 }
 
 // 寶箱：30 根起跳，連續每多一天多 5 根，七天封頂 60
@@ -613,7 +616,8 @@ export function dailyBonus (streak) {
 export function claimDaily (state, today) {
   const d = dailyView(state, today)
   if (d.claimed || d.rounds < DAILY_GOAL) return state
-  return { ...addBones(state, dailyBonus(d.streak)), daily: { date: today, rounds: d.rounds, claimed: true } }
+  const extra = state.daily && state.daily.date === today ? state.daily.extra || 0 : 0
+  return { ...addBones(state, dailyBonus(d.streak)), daily: { date: today, rounds: d.rounds, claimed: true, extra } }
 }
 
 // 教學看過了

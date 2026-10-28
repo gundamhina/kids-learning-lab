@@ -9,7 +9,7 @@ import { execSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 
 const root = dirname(fileURLToPath(import.meta.url))
-const ORDER = ['syllables.js', 'data.js', 'scheduler.js', 'mathq.js', 'store.js', 'audio.js', 'art.js', 'fishing.js', 'whack.js', 'memory.js', 'speak.js', 'ink.js', 'strokes.js', 'strokeplay.js', 'write.js', 'learn.js', 'chart.js', 'matchline.js', 'fillblank.js', 'spell.js', 'friend.js', 'mathgames.js', 'ui.js', 'fx.js', 'tutorial.js', 'shop.js', 'check.js', 'main.js']
+const ORDER = ['syllables.js', 'data.js', 'scheduler.js', 'mathq.js', 'store.js', 'audio.js', 'art.js', 'fishing.js', 'whack.js', 'memory.js', 'speak.js', 'ink.js', 'strokes.js', 'strokeplay.js', 'write.js', 'learn.js', 'chart.js', 'matchline.js', 'fillblank.js', 'spell.js', 'friend.js', 'mathgames.js', 'brainq.js', 'braingames.js', 'ui.js', 'fx.js', 'tutorial.js', 'shop.js', 'check.js', 'main.js']
 
 function strip (src, name) {
   return `// ===== ${name} =====\n` + src

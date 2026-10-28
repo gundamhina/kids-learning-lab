@@ -1126,3 +1126,93 @@ html, body { overscroll-behavior: none; } /* 家長區捲到頂再往下拉，An
 #stage.portrait .cmp-side[data-side="left"] { top: 270px; }
 #stage.portrait .cmp-side[data-side="right"] { top: 690px; }
 .cmp-ask b { font-size: 40px; font-weight: 900; color: #2B3A4A; }
+
+/* ================= 動腦：找規律、找不同、迷宮 ================= */
+.brain-dog { left: 20px; top: 450px; width: 200px; height: 231px; }
+.brain-dog .dog, .brain-dog .dog-slot .art-slot { width: 200px; height: 231px; }
+.brain-img { width: 100%; height: 100%; pointer-events: none; -webkit-user-drag: none; }
+
+/* 找規律 */
+.pat-row { position: absolute; left: 0; right: 0; top: 130px; display: flex; justify-content: center; gap: 10px; padding: 18px 0; }
+.pat-cell { width: var(--tile, 100px); height: var(--tile, 100px); border-radius: 22%; background: var(--paper) var(--paper-tex); border: 4px solid var(--wood); box-shadow: 0 5px 0 var(--wood); padding: calc(var(--tile, 100px) * .12); display: flex; align-items: center; justify-content: center; font-size: calc(var(--tile, 100px) * .55); flex: none; font-weight: 900; color: #E0955B; }
+.pat-blank { border-style: dashed; border-color: #E0955B; background: rgba(224,149,91,.1); box-shadow: none; }
+.pat-row.glow .pat-cell { border-color: #466E46; box-shadow: 0 5px 0 #466E46; }
+.pat-opts { position: absolute; left: 230px; right: 40px; top: 430px; display: flex; justify-content: center; align-items: center; gap: 30px; flex-wrap: wrap; }
+.pat-opt { display: flex; gap: 6px; padding: 16px; border-radius: 28px; background: #FFF3B0 var(--paper-tex); border: 5px solid #C39A1E; box-shadow: 0 7px 0 #C39A1E; filter: url(#wobble); transition: scale .12s var(--ease-out); }
+.pat-opt:active { scale: .95; }
+.pat-opt .brain-img { width: 96px; height: 96px; }
+.pat-opt.n3 .brain-img, .pat-opt.n4 .brain-img { width: 72px; height: 72px; }
+.pat-opt.n5 .brain-img, .pat-opt.n6 .brain-img { width: 56px; height: 56px; }
+.pat-opt.shake { animation: shake .45s ease-in-out; }
+.pat-opt.right { background-color: #CFE8C6; border-color: #466E46; box-shadow: 0 7px 0 #466E46; }
+
+/* 找不同 */
+.odd-grid { position: absolute; left: 240px; right: 40px; top: 120px; bottom: 120px; display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: 30px; }
+.odd-card { width: 220px; height: 220px; padding: 34px; border-radius: 32px; background: var(--paper) var(--paper-tex); border: 5px solid var(--wood); box-shadow: 0 8px 0 var(--wood); transition: scale .12s var(--ease-out); }
+.odd-grid.n6 .odd-card { width: 190px; height: 190px; padding: 28px; }
+.odd-card:active { scale: .95; }
+.odd-card.shake { animation: shake .45s ease-in-out; }
+.odd-card.right { border-color: #466E46; box-shadow: 0 0 0 10px rgba(107,158,107,.45), 0 8px 0 #466E46; }
+
+/* 迷宮 */
+.maze-box { position: absolute; left: 250px; top: 120px; background: rgba(255,253,247,.9) var(--paper-tex); border-radius: 20px; box-shadow: 0 0 0 10px rgba(255,253,247,.9), 0 14px 0 6px var(--wood); touch-action: none; }
+.maze-walls { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.maze-things { position: absolute; inset: 0; pointer-events: none; }
+.maze-exit, .maze-item { position: absolute; padding: calc(var(--cell, 80px) * .14); }
+.maze-exit .maze-lock { position: absolute; right: 4%; bottom: 4%; width: 40%; height: 40%; display: none; }
+.maze-exit.locked .maze-lock { display: block; }
+.maze-exit.locked .brain-img { opacity: .55; }
+.maze-item.got { opacity: 0; scale: 1.6; transition: opacity .3s, scale .3s var(--ease-out); }
+.maze-hero { position: absolute; left: 0; top: 0; padding: calc(var(--cell, 80px) * .04); transition: transform .18s var(--ease-out); pointer-events: none; }
+.maze-hero .dog { width: 100%; height: 100%; }
+.maze-hero.bump { animation: shake .3s ease-in-out; }
+.maze-pad { position: absolute; left: 1010px; top: 330px; width: 180px; height: 180px; }
+.maze-btn { position: absolute; width: 74px; height: 74px; background-color: #8A6FB0; border-color: #5E4880; box-shadow: 0 6px 0 #5E4880; }
+.maze-btn:active { box-shadow: 0 2px 0 #5E4880; }
+.maze-btn[data-dir="n"] { left: 53px; top: -45px; }
+.maze-btn[data-dir="s"] { left: 53px; top: 151px; }
+.maze-btn[data-dir="w"] { left: -45px; top: 53px; }
+.maze-btn[data-dir="e"] { left: 151px; top: 53px; }
+
+/* 直的 */
+#stage.portrait .brain-dog { left: 20px; top: 110px; width: 150px; height: 173px; }
+#stage.portrait .brain-dog .dog, #stage.portrait .brain-dog .dog-slot .art-slot { width: 150px; height: 173px; }
+#stage.portrait .pat-row { top: 330px; flex-wrap: wrap; padding: 0 30px; }
+#stage.portrait .pat-opts { left: 40px; right: 40px; top: 640px; flex-direction: column; }
+#stage.portrait .odd-grid { left: 40px; top: 300px; bottom: 140px; }
+#stage.portrait .maze-box { left: 40px; top: 300px; }
+#stage.portrait .maze-pad { left: 310px; top: calc(var(--H, 1300px) - 330px); }
+/* 迷宮橫的：狗狗就在迷宮裡，旁邊那隻拿掉，方向鍵放左邊 */
+.maze-frame .brain-dog { display: none; }
+.maze-frame .maze-box { left: 330px; }
+.maze-frame .maze-pad { left: 80px; top: 360px; }
+#stage.portrait .maze-frame .maze-box { left: 40px; }
+#stage.portrait .maze-frame .maze-pad { left: 310px; }
+
+/* 家長區：學習設定 */
+.panel-learn { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.learn-set { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.learn-label { min-width: 120px; font-weight: 700; }
+
+/* ---- 每天玩滿了：晚上收尾 ---- */
+.night { position: absolute; inset: 0; overflow: hidden; }
+.night-sky { position: absolute; inset: 0; width: 100%; height: 100%; }
+.night-star { animation: twinkle 2.4s ease-in-out infinite; }
+.night-star.s1 { animation-delay: .8s; } .night-star.s2 { animation-delay: 1.6s; }
+@keyframes twinkle { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.night-dog { position: absolute; left: 50%; bottom: 60px; width: 240px; height: 277px; margin-left: -380px; rotate: -8deg; filter: brightness(.8); }
+.night-dog .dog { width: 240px; height: 277px; }
+.night-zz { position: absolute; right: -10px; top: 0; font-size: 60px; font-weight: 900; color: #FFF3B0; animation: zz 2s ease-in-out infinite; }
+.night-zz small { font-size: 40px; }
+@keyframes zz { 0%, 100% { translate: 0 0; opacity: .6; } 50% { translate: 8px -14px; opacity: 1; } }
+.night-card { position: absolute; left: 50%; top: 50%; translate: -50% -78%; width: 620px; max-width: calc(100% - 60px); padding: 30px 36px; border-radius: 36px; background: var(--paper) var(--paper-tex); border: 6px solid var(--wood); box-shadow: 0 12px 0 var(--wood); text-align: center; }
+.night-title { font-size: 52px; font-weight: 900; color: #2B3A4A; }
+.night-task { margin-top: 18px; display: flex; align-items: center; justify-content: center; gap: 18px; font-size: 40px; font-weight: 900; color: #8A6A4C; }
+.night-icon { font-size: 90px; line-height: 1; }
+.night-more { position: absolute; right: 30px; bottom: 30px; padding: 12px 24px; border-radius: 30px; background: rgba(255,253,247,.25); color: #FFF3B0; font-size: 22px; font-weight: 700; border: 3px solid rgba(255,243,176,.5); }
+.night-gate { position: absolute; inset: 0; background: rgba(27,43,75,.6); display: flex; align-items: center; justify-content: center; }
+.night-gate-box { padding: 30px; border-radius: 28px; background: var(--paper); border: 5px solid var(--wood); display: flex; flex-direction: column; align-items: center; gap: 20px; font-size: 34px; color: #2B3A4A; }
+.night-gate-opts { display: flex; gap: 16px; }
+.night-gate-opts button { width: 110px; height: 80px; border-radius: 18px; background: #FFF3B0; border: 4px solid #C39A1E; font-size: 36px; font-weight: 900; color: #2B3A4A; }
+.night-gate-close { font-size: 22px; color: #8A6A4C; }
+#stage.portrait .night-dog { margin-left: -120px; bottom: 80px; }

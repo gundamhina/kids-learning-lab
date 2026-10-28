@@ -15,12 +15,15 @@ import { createFillBlank } from './fillblank.js'
 import { createSpell } from './spell.js'
 import { createFriend } from './friend.js'
 import { createCount, createMake, createCompare } from './mathgames.js'
+import { createPattern, createOdd, createMaze } from './braingames.js'
+import { patternQuestion, oddQuestion, mazeLevel } from './brainq.js'
 import { countViewOf, countOptions, makePoolSize, compareQuestion, scatter, COUNT_ICONS } from './mathq.js'
 import { renderShop } from './shop.js'
 import { setOutfit, boneSvg, ownedMates, bgHtml, UX_ICONS } from './art.js'
 import { burstAt, flyBones, bump, buzz } from './fx.js'
 import { showTutorial, hasTutorial } from './tutorial.js'
 import { WORD_ICON, coreOf } from './data.js'
+import { renderNight, NIGHT_TASKS } from './ui.js'
 import { fitStage, layoutBg, mountBgs, goFullscreenOnPhone, showScreen, renderProfiles, renderHome, renderResult, playResult, renderPanel, panelMessage, openRangePicker, watchArtSlots } from './ui.js'
 import { renderCheck } from './check.js'
 
@@ -28,7 +31,7 @@ const SETTINGS_KEY = 'zhuyin-rescue-settings'
 const MEMORY_PAIRS = 5
 // 每個玩法練哪一軌：聽（釣魚、打地鼠）、讀（唸給狗狗聽）、寫（寫給狗狗看）、詞（連連看、填空）、調（聲調填空）、拼（拼拼看）
 // 翻牌只借「聽」那一軌的出題池挑符號，不寫任何紀錄進去
-const TRACK_OF = { fishing: 'listen', whack: 'listen', memory: 'listen', speak: 'read', write: 'write', match: 'word', fill: 'word', tone: 'tone', learn: 'write', spell: 'spell', friend: 'friend', count: 'count', make: 'count', compare: 'compare' }
+const TRACK_OF = { fishing: 'listen', whack: 'listen', memory: 'listen', speak: 'read', write: 'write', match: 'word', fill: 'word', tone: 'tone', learn: 'write', spell: 'spell', friend: 'friend', count: 'count', make: 'count', compare: 'compare', pattern: 'pattern', odd: 'odd', maze: 'maze' }
 // 純練習的玩法：不記進度、沒有玩完的骨頭、不算今天的腳印
 const PRACTICE_KINDS = ['memory', 'learn']
 const LEARN_SYMBOLS = 3 // 學寫字一局教幾個符號
@@ -152,6 +155,7 @@ function main () {
     if (t === 'friend') return 'friend'
     if (t === 'count') return odd ? 'make' : 'count'
     if (t === 'compare') return 'compare'
+    if (t === 'pattern' || t === 'odd' || t === 'maze') return t
     if (t === 'read') return canSpeak() ? 'speak' : 'match'
     return 'write'
   }
@@ -159,7 +163,34 @@ function main () {
   // 老師調的打地鼠速度：0 慢、1 中、2 快；沒調過是中
   function whackSpeed () { return WHACK_SPEEDS[state.whackSpeed] ? state.whackSpeed : 1 }
 
+  // 每天玩幾局（家長區設，0＝不限）：今天玩滿了就只給晚上收尾畫面。延長的局數記在今天的 daily.extra
+  function limitReached () {
+    if (isTeacher() || !state.dailyLimit) return false
+    const d = dailyView(state, today())
+    const extra = state.daily && state.daily.date === today() ? state.daily.extra || 0 : 0
+    return d.rounds >= state.dailyLimit + extra
+  }
+  function showNight () {
+    destroyGame()
+    const task = NIGHT_TASKS[Math.floor(Math.random() * NIGHT_TASKS.length)]
+    renderNight(homeEl, {
+      color: myColor(),
+      task,
+      extendBy: state.extendBy || 2,
+      onExtend: () => {
+        const d = state.daily && state.daily.date === today() ? state.daily : { date: today(), rounds: 0, claimed: false }
+        state = { ...state, daily: { ...d, extra: (d.extra || 0) + (state.extendBy || 2) } }
+        store.save(profile.id, state)
+        goHome()
+      },
+      onGear: gearTap,
+    })
+    show('home')
+    audio.sayText('今天練習完囉！' + task[1])
+  }
+
   function goHome () {
+    if (limitReached()) return showNight()
     destroyGame()
     const daily = { ...dailyView(state, today()), goal: DAILY_GOAL }
     const teacher = isTeacher() ? { tier: state.lockTier, range: state.rangeGroups || [], hidden: state.hiddenGames || [], whack: whackSpeed() } : null
@@ -424,6 +455,9 @@ function main () {
     if (which === 'count') return runCount()
     if (which === 'make') return runMake()
     if (which === 'compare') return runCompare()
+    if (which === 'pattern') return runPattern()
+    if (which === 'odd') return runOdd()
+    if (which === 'maze') return runMaze()
     runQuestions(which)
   }
 
@@ -477,7 +511,7 @@ function main () {
     }
     const perfect = !PRACTICE_KINDS.includes(kind) && earned.length > 0 && earned.every(Boolean)
     renderResult(resultEl, myColor(), { roundBones, bones: state.bones, mates: isTeacher() ? [] : teamOf(state, profile.color).filter(c => c !== myColor()), daily, perfect, teacher: isTeacher() })
-    resultEl.querySelector('#btn-again').addEventListener('pointerdown', () => startGame(kind))
+    resultEl.querySelector('#btn-again').addEventListener('pointerdown', () => { if (limitReached()) showNight(); else startGame(kind) })
     resultEl.querySelector('#btn-home').addEventListener('pointerdown', goHome)
     show('result')
     audio.cheer()
@@ -526,7 +560,7 @@ function main () {
     replayBtn.classList.remove('hidden')
     // 寫字只出單一符號；聽的玩法不出詞
     const v = currentView()
-    round = which === 'write' ? buildRound(singleSymbolState(v), Math.random) : buildRound(noWordsState(v), Math.random)
+    round = which === 'write' ? buildRound(singleSymbolState(v), Math.random, roundSize()) : buildRound(noWordsState(v), Math.random, roundSize())
     index = 0
     starTotal = round.length
     setStars()
@@ -657,7 +691,7 @@ function main () {
       }
       meter = m
     })
-    round = buildRound(currentView(), Math.random)
+    round = buildRound(currentView(), Math.random, roundSize())
     index = 0
     starTotal = round.length
     setStars()
@@ -801,7 +835,7 @@ function main () {
     replayBtn.classList.add('hidden')
     const v = wordsOnlyState(currentView(), { pictures: mode !== 'tone' })
     // 聲調填空專挑聲調難分辨的詞，空格放在最難的音節
-    round = mode === 'tone' ? buildToneRound(v, Math.random) : buildRound(v, Math.random)
+    round = mode === 'tone' ? buildToneRound(v, Math.random, roundSize()) : buildRound(v, Math.random, roundSize())
     index = 0
     starTotal = round.length
     setStars()
@@ -880,7 +914,7 @@ function main () {
   function runFriend () {
     game = createFriend(playArea, { color: myColor() })
     replayBtn.classList.remove('hidden') // 再聽一次符號的音
-    round = buildRound(singleSymbolState(currentView()), Math.random)
+    round = buildRound(singleSymbolState(currentView()), Math.random, roundSize())
     index = 0
     starTotal = round.length
     setStars()
@@ -953,7 +987,9 @@ function main () {
   // ---- 數學 ----
   // 數一數、做數量記在「數」軌（題目是數字，照星星一組一組解鎖，最多數到幾由家長設，預設 10）；比多少記在「比」軌
   function countMax () { return state.countMax || 10 }
-  function countRound () { return buildRound(countViewOf(currentView(), countMax()), Math.random) }
+  // 每局題數：家長區可選 3、5、8、10，所有玩法共用（翻牌、學寫字、連連看、迷宮另有自己的數量）
+  function roundSize () { return [3, 5, 8, 10].includes(state.roundSize) ? state.roundSize : 5 }
+  function countRound () { return buildRound(countViewOf(currentView(), countMax()), Math.random, roundSize()) }
   const pickIcon = () => COUNT_ICONS[Math.floor(Math.random() * COUNT_ICONS.length)]
   // 一題的共用流程：開題、唸題目、答對換下一題、答錯三級提示（錯 1 次重唸題目、2 次起標出答案、3 次起再示範）
   function mathQuestions ({ ask, target, isRight, onRight, sayQuestion, demoText }) {
@@ -1018,7 +1054,7 @@ function main () {
       if (step >= 2) game.mark()
       setTimeout(async () => {
         if (game !== myGame || busy) return
-        if (step >= 3) { await audio.sayText('是這一個'); if (game === myGame) audio.sayText(demoText(q)) } else sayQuestion(q)
+        if (step >= 3) { await audio.sayText('是這一個'); const t = demoText(q); if (t && game === myGame) audio.sayText(t) } else sayQuestion(q)
       }, 450)
     })
     next()
@@ -1070,7 +1106,7 @@ function main () {
     game = createCompare(playArea, { color: myColor() })
     replayBtn.classList.add('hidden')
     const tier = effectiveTier(trackView(state, 'compare'))
-    round = Array.from({ length: 5 }, (_, i) => {
+    round = Array.from({ length: roundSize() }, (_, i) => {
       const q = compareQuestion(tier, Math.random, i % 2 ? 'less' : 'more')
       return { ...q, target: q.ask, idleHint: tier <= 1 ? 10 : 0 }
     }).sort(() => Math.random() - 0.5)
@@ -1087,12 +1123,87 @@ function main () {
     })
   }
 
+  // ---- 動腦 ----
+  // 找規律、找不同：一局 5 題，題型照這一軌的階級；記錄的題目是題型（找規律 'fill:AB'、找不同 'odd:flip'）
+  function brainRound (make) {
+    const tier = effectiveTier(currentView())
+    return Array.from({ length: roundSize() }, () => ({ ...make(tier), idleHint: tier <= 1 ? 10 : 0 }))
+  }
+  const PATTERN_ASK = { fill: '空格裡是哪一個？', repeat: '哪一段一直重複？', translate: '哪一排的規律一樣？' }
+  function runPattern () {
+    game = createPattern(playArea, { color: myColor() })
+    replayBtn.classList.add('hidden')
+    round = brainRound(tier => { const p = patternQuestion(tier, Math.random); return { ...p, target: p.mode + ':' + p.type } })
+    index = 0
+    starTotal = round.length
+    setStars()
+    mathQuestions({
+      ask: q => game.start(q),
+      target: q => q.target,
+      isRight: (q, i) => i === game.answerIndex(),
+      onRight: null,
+      sayQuestion: (q, onStart) => audio.sayText(PATTERN_ASK[q.mode], { onStart }),
+      demoText: () => '',
+    })
+  }
+  function runOdd () {
+    game = createOdd(playArea, { color: myColor() })
+    replayBtn.classList.add('hidden')
+    round = brainRound(tier => { const o = oddQuestion(tier, Math.random); return { ...o, target: 'odd:' + o.kind } })
+    index = 0
+    starTotal = round.length
+    setStars()
+    mathQuestions({
+      ask: q => game.start(q),
+      target: q => q.target,
+      isRight: (q, i) => i === q.odd,
+      onRight: null,
+      sayQuestion: (q, onStart) => audio.sayText('哪一個不一樣？', { onStart }),
+      demoText: () => '',
+    })
+  }
+  // 迷宮：一局三關，從比較簡單的開始，最後一關是這一軌現在的階級。撞牆三次以上這一關就不算第一次就會
+  function runMaze () {
+    game = createMaze(playArea, { color: myColor() })
+    replayBtn.classList.add('hidden')
+    const tier = effectiveTier(currentView())
+    round = [Math.max(0, tier - 2), Math.max(0, tier - 1), tier].map(t => ({ target: 'maze' + t, level: mazeLevel(t, Math.random) }))
+    index = 0
+    starTotal = round.length
+    setStars()
+    let bumps = 0
+    const myGame = game
+    const next = () => {
+      bumps = 0
+      const lv = round[index].level
+      game.start(lv)
+      audio.sayText(lv.items.length ? '先撿骨頭，再回家' : '走回家')
+      game.unlock()
+    }
+    game.onBump(() => { bumps++; audio.wrong(); buzz(30) })
+    game.onMove(k => { if (k === 'item') { audio.ding(); buzz(20) } })
+    game.onDone(async () => {
+      const q = round[index]
+      const ok = bumps < 3
+      const bones = questionReward(currentView(), q.target, ok)
+      if (!isTeacher()) commit({ target: q.target, ok, picked: q.target, ms: 0, drill: null })
+      rewardCorrect(ok, playArea.querySelector('.maze-exit'), bones)
+      audio.cheer()
+      await wait(900)
+      if (game !== myGame) return
+      index++
+      if (index >= round.length) return finishRound()
+      next()
+    })
+    next()
+  }
+
   // ---- 拼拼看：聽一個音，照順序（由上往下）把符號拖進空格拼出來 ----
   // 放對一塊唸那個符號，全部拼好唸整個音對答案。中間放錯一塊這題就算錯（只記一次），可以繼續拼完。
   function runSpell () {
     game = createSpell(playArea, { color: myColor() })
     replayBtn.classList.remove('hidden')
-    round = buildRound(syllablesOnlyState(currentView()), Math.random)
+    round = buildRound(syllablesOnlyState(currentView()), Math.random, roundSize())
     index = 0
     starTotal = round.length
     setStars()

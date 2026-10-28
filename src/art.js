@@ -484,6 +484,45 @@ export function cardArt (kind) {
   <g fill="#E0955B"><circle cx="126" cy="70" r="8"/><circle cx="143" cy="70" r="8"/><circle cx="160" cy="70" r="8"/><circle cx="177" cy="70" r="8"/><circle cx="135" cy="54" r="8"/><circle cx="152" cy="54" r="8"/><circle cx="169" cy="54" r="8"/></g>
 </svg>`
   }
+  if (kind === 'pattern') {
+    return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="400" fill="#F3E4C2"/>
+  <rect x="16" y="80" width="268" height="90" rx="18" fill="#FFFDF7" stroke="#B08A63" stroke-width="5"/>
+  <text x="54" y="142" text-anchor="middle" font-size="44">\u{1F34E}</text>
+  <text x="114" y="142" text-anchor="middle" font-size="44">\u{1F34C}</text>
+  <text x="174" y="142" text-anchor="middle" font-size="44">\u{1F34E}</text>
+  <rect x="210" y="98" width="56" height="56" rx="12" fill="rgba(224,149,91,0.12)" stroke="#E0955B" stroke-width="4" stroke-dasharray="8 6"/>
+  <rect x="40" y="250" width="90" height="90" rx="18" fill="#FFF3B0" stroke="#C39A1E" stroke-width="5"/>
+  <rect x="170" y="250" width="90" height="90" rx="18" fill="#CFE8C6" stroke="#466E46" stroke-width="6"/>
+  <text x="85" y="312" text-anchor="middle" font-size="48">\u{1F353}</text>
+  <text x="215" y="312" text-anchor="middle" font-size="48">\u{1F34C}</text>
+  <path d="M215 244 q20 -40 22 -84" fill="none" stroke="#E0955B" stroke-width="5" stroke-dasharray="6 6"/>
+</svg>`
+  }
+  if (kind === 'odd') {
+    return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="400" fill="#F3E4C2"/>
+  <rect x="30" y="60" width="110" height="110" rx="20" fill="#FFFDF7" stroke="#B08A63" stroke-width="5"/>
+  <rect x="160" y="60" width="110" height="110" rx="20" fill="#FFFDF7" stroke="#B08A63" stroke-width="5"/>
+  <rect x="30" y="200" width="110" height="110" rx="20" fill="#FFFDF7" stroke="#466E46" stroke-width="7"/>
+  <rect x="160" y="200" width="110" height="110" rx="20" fill="#FFFDF7" stroke="#B08A63" stroke-width="5"/>
+  <text x="85" y="135" text-anchor="middle" font-size="58">\u{1F41F}</text>
+  <text x="215" y="135" text-anchor="middle" font-size="58">\u{1F41F}</text>
+  <text x="85" y="275" text-anchor="middle" font-size="58" transform="translate(170 0) scale(-1 1)">\u{1F41F}</text>
+  <text x="215" y="275" text-anchor="middle" font-size="58">\u{1F41F}</text>
+</svg>`
+  }
+  if (kind === 'maze') {
+    return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="400" fill="#F3E4C2"/>
+  <rect x="30" y="70" width="240" height="240" rx="16" fill="#FFFDF7"/>
+  <path d="M30 70h240v240H30z M90 70v120 M90 250h120 M150 130v120 M210 70v120 M210 190h60 M30 190h60" fill="none" stroke="#6E9C58" stroke-width="10" stroke-linecap="round"/>
+  <path d="M60 100 V220 H120 V160 H180 V280 H240" fill="none" stroke="#E0955B" stroke-width="6" stroke-dasharray="8 8"/>
+  <text x="60" y="118" text-anchor="middle" font-size="38">\u{1F436}</text>
+  <text x="240" y="298" text-anchor="middle" font-size="38">\u{1F3E0}</text>
+  <text x="180" y="168" text-anchor="middle" font-size="32">\u{1F9B4}</text>
+</svg>`
+  }
   if (kind === 'tone') {
     return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
   <rect width="300" height="400" fill="#F3E4C2"/>
