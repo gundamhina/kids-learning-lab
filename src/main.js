@@ -14,14 +14,14 @@ import { createMatchLine } from './matchline.js'
 import { createFillBlank } from './fillblank.js'
 import { createSpell } from './spell.js'
 import { createFriend } from './friend.js'
-import { createCount, createMake, createCompare } from './mathgames.js'
+import { createCount, createMake, createCompare, createCalc } from './mathgames.js'
 import { createPattern, createOdd, createMaze, createAnalogy, createTiles } from './braingames.js'
 import { patternQuestion, oddQuestion, mazeLevel, spotScene, analogyQuestion, tilesQuestion } from './brainq.js'
 import { createColoring, COLOR_PICTURES } from './coloring.js'
 import { createSpot } from './spot.js'
 import { DIGIT_SYMBOLS, UPPER_SYMBOLS } from './latinstrokes.js'
 import { LETTER_GROUPS, SPELL_GROUPS, ENGLISH_ICON, letterOptions, letterPictureQuestion, wordTiles } from './english.js'
-import { countViewOf, countOptions, makePoolSize, compareQuestion, scatter, COUNT_ICONS } from './mathq.js'
+import { countViewOf, countOptions, makePoolSize, compareQuestion, scatter, COUNT_ICONS, countMixed, CALC_GROUPS, parseCalc, calcLook, calcSay } from './mathq.js'
 import { renderShop } from './shop.js'
 import { openBattle, canBattle } from './battle.js'
 import { setOutfit, boneSvg, ownedMates, bgHtml, UX_ICONS, twemojiName } from './art.js'
@@ -37,7 +37,7 @@ const SETTINGS_KEY = 'zhuyin-rescue-settings'
 const MEMORY_PAIRS = 5
 // 每個玩法練哪一軌：聽（釣魚、打地鼠）、讀（唸給狗狗聽）、寫（寫給狗狗看）、詞（連連看、填空）、調（聲調填空）、拼（拼拼看）
 // 翻牌只借「聽」那一軌的出題池挑符號，不寫任何紀錄進去
-const TRACK_OF = { fishing: 'listen', whack: 'listen', memory: 'listen', speak: 'read', write: 'write', match: 'word', fill: 'word', tone: 'tone', learn: 'write', spell: 'spell', friend: 'friend', count: 'count', make: 'count', compare: 'compare', pattern: 'pattern', odd: 'odd', maze: 'maze', letterpic: 'letter', letterhear: 'letter', wordspell: 'eword', numwrite: 'count', abcwrite: 'letter', spot: 'spot', coloring: 'pattern', analogy: 'pattern', tiles: 'pattern' }
+const TRACK_OF = { fishing: 'listen', whack: 'listen', memory: 'listen', speak: 'read', write: 'write', match: 'word', fill: 'word', tone: 'tone', learn: 'write', spell: 'spell', friend: 'friend', count: 'count', make: 'count', compare: 'compare', calc: 'calc', pattern: 'pattern', odd: 'odd', maze: 'maze', letterpic: 'letter', letterhear: 'letter', wordspell: 'eword', numwrite: 'count', abcwrite: 'letter', spot: 'spot', coloring: 'pattern', analogy: 'pattern', tiles: 'pattern' }
 // 純練習的玩法：不記進度、沒有玩完的骨頭、不算今天的腳印
 const PRACTICE_KINDS = ['memory', 'learn', 'numwrite', 'abcwrite', 'coloring']
 const LEARN_SYMBOLS = 3 // 學寫字一局教幾個符號
@@ -161,6 +161,7 @@ function main () {
     if (t === 'friend') return 'friend'
     if (t === 'count') return odd ? 'make' : 'count'
     if (t === 'compare') return 'compare'
+    if (t === 'calc') return 'calc'
     if (t === 'pattern' || t === 'odd' || t === 'maze') return t
     if (t === 'letter') return odd ? 'letterhear' : 'letterpic'
     if (t === 'eword') return 'wordspell'
@@ -497,6 +498,7 @@ function main () {
     if (which === 'count') return runCount()
     if (which === 'make') return runMake()
     if (which === 'compare') return runCompare()
+    if (which === 'calc') return runCalc()
     if (which === 'pattern') return runPattern()
     if (which === 'odd') return runOdd()
     if (which === 'maze') return runMaze()
@@ -1136,15 +1138,17 @@ function main () {
     starTotal = round.length
     setStars()
     game.onCountTap(k => audio.sayText(String(k)))
+    const tier = effectiveTier(currentView())
     mathQuestions({
       ask: q => {
         const n = Number(q.target)
-        game.start(n, pickIcon(), countOptions(n, effectiveTier(currentView()), Math.random), scatter(n, Math.random))
+        q.mix = tier >= 3 && n <= 10 && Math.random() < 0.6 ? countMixed(n, tier, Math.random) : null
+        game.start(n, pickIcon(), countOptions(n, tier, Math.random), scatter(n, Math.random), q.mix)
       },
       target: q => q.target,
       isRight: (q, picked) => picked === Number(q.target),
       onRight: q => audio.sayText(q.target + '個'),
-      sayQuestion: (q, onStart) => audio.sayText('有幾個？', { onStart }),
+      sayQuestion: (q, onStart) => audio.sayText(q.mix ? '左上角這個，有幾個？' : '有幾個？', { onStart }),
       demoText: q => q.target + '個',
     })
   }
@@ -1174,7 +1178,7 @@ function main () {
     replayBtn.classList.add('hidden')
     const tier = effectiveTier(trackView(state, 'compare'))
     round = Array.from({ length: roundSize() }, (_, i) => {
-      const q = compareQuestion(tier, Math.random, i % 2 ? 'less' : 'more')
+      const q = compareQuestion(tier, Math.random, i % 2 ? 'less' : 'more', { equal: tier >= 4 })
       return { ...q, target: q.ask, idleHint: tier <= 1 ? 10 : 0 }
     }).sort(() => Math.random() - 0.5)
     index = 0
@@ -1184,9 +1188,34 @@ function main () {
       ask: q => game.start(q, pickIcon(), { left: scatter(q.left, Math.random), right: scatter(q.right, Math.random) }),
       target: q => q.target,
       isRight: (q, picked) => picked === q.answer,
-      onRight: q => audio.sayText(q.ask === 'more' ? '這邊比較多' : '這邊比較少'),
-      sayQuestion: (q, onStart) => audio.sayText(q.ask === 'more' ? '哪一邊比較多？' : '哪一邊比較少？', { onStart }),
-      demoText: q => q.ask === 'more' ? '這邊比較多' : '這邊比較少',
+      onRight: q => audio.sayText(q.answer === 'equal' ? '兩邊一樣多' : q.ask === 'more' ? '這邊比較多' : '這邊比較少'),
+      sayQuestion: (q, onStart) => audio.sayText((q.ask === 'more' ? '哪一邊比較多？' : '哪一邊比較少？') + (q.equal ? '還是一樣多？' : ''), { onStart }),
+      demoText: q => q.answer === 'equal' ? '兩邊一樣多' : q.ask === 'more' ? '這邊比較多' : '這邊比較少',
+    })
+  }
+
+  // 加減：十以內，一組一組解鎖（加到 5、5 以內減、加到 10…）；怎麼出照階級：只有圖 → 數字配圖 → 只有數字
+  function runCalc () {
+    game = createCalc(playArea, { color: myColor() })
+    replayBtn.classList.add('hidden')
+    // 階級越高開越多組：第 1 階至少開第 1 組、第 6 階六組全開；練熟了照常自動往後開
+    const tier = effectiveTier(currentView())
+    round = buildRound({ ...currentView(), groups: CALC_GROUPS, rangeGroups: null, unlockedUpTo: tier + 1, known: [] }, Math.random, roundSize())
+    index = 0
+    starTotal = round.length
+    setStars()
+    const look = calcLook(tier)
+    mathQuestions({
+      ask: q => {
+        const c = parseCalc(q.target)
+        game.start(c, pickIcon(), countOptions(c.answer, tier, Math.random), look)
+      },
+      target: q => q.target,
+      isRight: (q, picked) => picked === parseCalc(q.target).answer,
+      onRight: q => audio.sayText(calcSay(q.target, true)),
+      // 只有圖的時候不唸算式：加法問一共幾個、減法問還剩幾個
+      sayQuestion: (q, onStart) => audio.sayText(look === 'pictures' ? (parseCalc(q.target).op === '+' ? '一共有幾個？' : '拿走打叉的，還剩幾個？') : calcSay(q.target), { onStart }),
+      demoText: q => calcSay(q.target, true),
     })
   }
 

@@ -3,7 +3,7 @@
 import { GROUPS, REP_CHAR, GROUP_NAMES, WORD_TEXT } from './data.js'
 import { stars, activePool, effectiveTier, unlockedCount, lifetimeStats, dailyStats, TIERS, ZHUYIN_TRACKS, TRACK_NAMES, overviewStats, weakestItems, TRACKS } from './scheduler.js'
 import { dogSvg, confettiHtml, DOG_COLORS, bgHtml, cardArt, boneSvg, SHOP_ICONS, UX_ICONS, DOG_NAMES } from './art.js'
-import { COUNT_GROUPS } from './mathq.js'
+import { COUNT_GROUPS, CALC_GROUPS } from './mathq.js'
 import { LETTER_GROUPS, SPELL_GROUPS } from './english.js'
 
 
@@ -278,7 +278,7 @@ export const CATEGORIES = [
 export const SUBJECTS = [
   { key: 'zhuyin', name: '注音', color: '#4A6FA5', label: 'ㄅㄆㄇ', categories: CATEGORIES },
   { key: 'math', name: '數學', color: '#D9844B', label: '123', categories: [
-    { key: 'count', name: '數數', color: '#D9844B', games: ['count', 'make', 'compare', 'numwrite'] },
+    { key: 'count', name: '數數', color: '#D9844B', games: ['count', 'make', 'compare', 'calc', 'numwrite'] },
   ] },
   { key: 'english', name: '英文', color: '#3F8F8C', label: 'ABC', categories: [
     { key: 'english', name: '英文', color: '#3F8F8C', games: ['letterpic', 'letterhear', 'wordspell', 'abcwrite'] },
@@ -560,7 +560,7 @@ const VOLUMES = [['voiceVol', '發音'], ['sfxVol', '音效'], ['musicVol', '背
 const volPct = (settings, key) => Math.round((typeof settings[key] === 'number' ? settings[key] : 1) * 100)
 // 音量那一列：家長區、老師後台都放在最上面
 // ---- 學習統計（全部科目）：練習日曆、每天玩幾分鐘、每一軌第一次就答對的比例、筆順最常錯在哪 ----
-const TRACK_GAMES = { spot: '經典找不同', letter: '認字母、聽字母', eword: '拼單字', listen: '釣魚、打地鼠', read: '唸唸看', write: '寫寫看', word: '連連看、填空', tone: '聲調填空', spell: '拼拼看', friend: '符號找朋友', count: '數一數、做數量', compare: '比多少', pattern: '找規律', odd: '找不同', maze: '迷宮' }
+const TRACK_GAMES = { spot: '經典找不同', letter: '認字母、聽字母', eword: '拼單字', listen: '釣魚、打地鼠', read: '唸唸看', write: '寫寫看', word: '連連看、填空', tone: '聲調填空', spell: '拼拼看', friend: '符號找朋友', count: '數一數、做數量', compare: '比多少', calc: '加減', pattern: '找規律', odd: '找不同', maze: '迷宮' }
 function overviewHtml (full) {
   const { cal, perTrack } = overviewStats(full)
   const max = Math.max(1, ...cal.map(c => c.n))
@@ -630,7 +630,7 @@ function bindVolume (root, settings, onSettings, onVolumeTest) {
   })
 }
 // 首頁的玩法卡，老師後台可以挑上課要顯示哪幾個
-export const GAME_NAMES = { fishing: '釣魚', whack: '打地鼠', memory: '翻牌', match: '連連看', fill: '填空', tone: '聲調填空', write: '寫寫看', learn: '學寫字', speak: '唸唸看', chart: '注音表', spell: '拼拼看', friend: '符號找朋友', count: '數一數', make: '做數量', compare: '比多少', pattern: '找規律', odd: '找不同', maze: '迷宮', letterpic: '認字母', letterhear: '聽字母', wordspell: '拼單字', numwrite: '寫數字', abcwrite: '寫字母', spot: '經典找不同', coloring: '著色', analogy: '圖形類比', tiles: '拼板補洞' }
+export const GAME_NAMES = { fishing: '釣魚', whack: '打地鼠', memory: '翻牌', match: '連連看', fill: '填空', tone: '聲調填空', write: '寫寫看', learn: '學寫字', speak: '唸唸看', chart: '注音表', spell: '拼拼看', friend: '符號找朋友', count: '數一數', make: '做數量', compare: '比多少', calc: '加減', pattern: '找規律', odd: '找不同', maze: '迷宮', letterpic: '認字母', letterhear: '聽字母', wordspell: '拼單字', numwrite: '寫數字', abcwrite: '寫字母', spot: '經典找不同', coloring: '著色', analogy: '圖形類比', tiles: '拼板補洞' }
 
 export function renderPanel (root, opts) {
   if (opts.profile && opts.profile.adult) return renderTeacherPanel(root, opts)
@@ -708,11 +708,12 @@ function renderTeacherPanel (root, { profile, profiles, state, settings, voices,
 // 家長區分頁；記住上次看哪一頁（改設定會整頁重畫，要停在同一頁）
 const FAMILY_SECTIONS = [['overview', '總覽'], ['learn', '學習設定'], ['progress', '進度'], ['sound', '聲音'], ['family', '使用者與資料']]
 // 進度頁：先選科目，再選科目裡的一軌
-const PROGRESS_SUBJECTS = [['zhuyin', '注音', ZHUYIN_TRACKS], ['math', '數學', ['count', 'compare']], ['english', '英文', ['letter', 'eword']], ['brain', '動腦', ['pattern', 'odd', 'maze', 'spot']]]
+const PROGRESS_SUBJECTS = [['zhuyin', '注音', ZHUYIN_TRACKS], ['math', '數學', ['count', 'compare', 'calc']], ['english', '英文', ['letter', 'eword']], ['brain', '動腦', ['pattern', 'odd', 'maze', 'spot']]]
 // 數學、英文、動腦一軌裡的題目：照順序列出來，每個一格星星
 function trackItems (track, state) {
   if (track === 'count') return COUNT_GROUPS.flat()
   if (track === 'compare') return ['more', 'less']
+  if (track === 'calc') return CALC_GROUPS.flat()
   if (track === 'letter') return LETTER_GROUPS.flat()
   if (track === 'eword') return SPELL_GROUPS.flat()
   return Object.keys(state.mastery || {})

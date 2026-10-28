@@ -51,3 +51,46 @@ test('數的東西：位置在框裡、不重複格子；圖檔都在', () => {
   }
   for (const icon of COUNT_ICONS) assert.ok(existsSync('img/emoji/' + twemojiName(icon) + '.svg'), icon + ' 沒有圖檔');
 });
+
+test('加減：六組都是十以內、答案至少 1，減法不會減到負的', async () => {
+  const { CALC_GROUPS, parseCalc, calcLook, calcSay } = await import('../src/mathq.js')
+  assert.deepEqual(CALC_GROUPS.map(g => g.length), [10, 10, 15, 15, 20, 20])
+  const all = CALC_GROUPS.flat()
+  assert.equal(new Set(all).size, all.length)
+  for (const f of all) {
+    const q = parseCalc(f)
+    assert.ok(q.answer >= 1 && q.answer <= 10, f)
+    assert.ok(q.a <= 10 && q.b >= 1, f)
+  }
+  assert.equal(calcLook(0), 'pictures')
+  assert.equal(calcLook(3), 'both')
+  assert.equal(calcLook(5), 'numbers')
+  assert.equal(calcSay('7-3', true), '7減3等於4')
+})
+
+test('數一數混好幾種：指定那種剛好 n 個，別種的數量跟答案不一樣', async () => {
+  const { countMixed } = await import('../src/mathq.js')
+  let x = 7
+  const rng = () => { x = (x * 16807) % 2147483647; return x / 2147483647 }
+  for (let i = 0; i < 50; i++) {
+    const n = 1 + (i % 10)
+    const m = countMixed(n, 3 + (i % 3), rng)
+    const kinds = new Set(m.items.map(it => it.icon))
+    assert.equal(m.items.filter(it => it.icon === m.target).length, n)
+    assert.ok(kinds.size >= 2)
+    for (const k of kinds) if (k !== m.target) assert.notEqual(m.items.filter(it => it.icon === k).length, n)
+  }
+})
+
+test('比多少高階：一樣多的題目答案是 equal，低階不會出', async () => {
+  const { compareQuestion } = await import('../src/mathq.js')
+  let x = 11
+  const rng = () => { x = (x * 16807) % 2147483647; return x / 2147483647 }
+  let equal = 0
+  for (let i = 0; i < 200; i++) {
+    const q = compareQuestion(5, rng, 'more', { equal: true })
+    if (q.answer === 'equal') { equal++; assert.equal(q.left, q.right) } else assert.notEqual(q.left, q.right)
+    assert.notEqual(compareQuestion(1, rng, 'more').answer, 'equal')
+  }
+  assert.ok(equal > 20 && equal < 90, String(equal))
+})

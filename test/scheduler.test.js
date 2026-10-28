@@ -314,10 +314,10 @@ test('寫字用的狀態：只保留單一符號的組別（前十組裡已解�
 });
 
 // ---- 聽、讀、寫、詞、調五軌分開記 ----
-test('新狀態有十五軌，各自空的紀錄；共用的家長設定在外層', () => {
+test('新狀態有十六軌，各自空的紀錄；共用的家長設定在外層', () => {
   const s = createState();
   assert.equal(s.version, 2);
-  assert.deepEqual(Object.keys(s.tracks).sort(), ['compare', 'count', 'eword', 'friend', 'letter', 'listen', 'maze', 'odd', 'pattern', 'read', 'spell', 'spot', 'tone', 'word', 'write']);
+  assert.deepEqual(Object.keys(s.tracks).sort(), ['calc', 'compare', 'count', 'eword', 'friend', 'letter', 'listen', 'maze', 'odd', 'pattern', 'read', 'spell', 'spot', 'tone', 'word', 'write']);
   for (const t of Object.values(s.tracks)) {
     assert.deepEqual(t.mastery, {});
     assert.deepEqual(t.confusions, {});
@@ -584,7 +584,7 @@ test('今天推薦：推今天練最少的那一軌，都一樣就照日子輪',
   s = applyTrack(s, 'friend', recordAnswer(trackView(s, 'friend'), ans('ㄇ')))
   s = applyTrack(s, 'count', recordAnswer(trackView(s, 'count'), ans('3')))
   s = applyTrack(s, 'compare', recordAnswer(trackView(s, 'compare'), ans('more')))
-  for (const t of ['pattern', 'odd', 'maze', 'letter', 'eword', 'spot']) s = applyTrack(s, t, recordAnswer(trackView(s, t), ans('x')))
+  for (const t of ['calc', 'pattern', 'odd', 'maze', 'letter', 'eword', 'spot']) s = applyTrack(s, t, recordAnswer(trackView(s, t), ans('x')))
   assert.equal(recommendTrack(s, today), 'write')
   // 昨天練的不算
   const fresh = createState()

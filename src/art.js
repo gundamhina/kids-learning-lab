@@ -454,6 +454,26 @@ export function cardArt (kind) {
   <text x="235" y="340" text-anchor="middle" font-size="50" font-weight="900" fill="#2B3A4A" font-family="Microsoft JhengHei, sans-serif">4</text>
 </svg>`
   }
+  if (kind === 'calc') {
+    return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="400" fill="#F3E4C2"/>
+  <rect x="24" y="40" width="252" height="190" rx="22" fill="#FFFDF7" stroke="#B08A63" stroke-width="6"/>
+  <text x="70" y="120" text-anchor="middle" font-size="62" font-weight="900" fill="#2B3A4A" font-family="Microsoft JhengHei, sans-serif">2</text>
+  <text x="122" y="118" text-anchor="middle" font-size="50" font-weight="900" fill="#D9844B" font-family="Microsoft JhengHei, sans-serif">+</text>
+  <text x="172" y="120" text-anchor="middle" font-size="62" font-weight="900" fill="#2B3A4A" font-family="Microsoft JhengHei, sans-serif">1</text>
+  <rect x="204" y="68" width="52" height="64" rx="10" fill="none" stroke="#E0955B" stroke-width="4" stroke-dasharray="8 6"/>
+  <text x="230" y="118" text-anchor="middle" font-size="44" font-weight="900" fill="#E0955B" font-family="Microsoft JhengHei, sans-serif">?</text>
+  <text x="52" y="200" text-anchor="middle" font-size="40">\u{1F34E}</text>
+  <text x="92" y="200" text-anchor="middle" font-size="40">\u{1F34E}</text>
+  <text x="172" y="200" text-anchor="middle" font-size="40">\u{1F34E}</text>
+  <rect x="30" y="280" width="70" height="80" rx="14" fill="#FFF3B0" stroke="#C39A1E" stroke-width="5"/>
+  <rect x="115" y="280" width="70" height="80" rx="14" fill="#CFE8C6" stroke="#466E46" stroke-width="6"/>
+  <rect x="200" y="280" width="70" height="80" rx="14" fill="#FFF3B0" stroke="#C39A1E" stroke-width="5"/>
+  <text x="65" y="340" text-anchor="middle" font-size="50" font-weight="900" fill="#2B3A4A" font-family="Microsoft JhengHei, sans-serif">2</text>
+  <text x="150" y="340" text-anchor="middle" font-size="50" font-weight="900" fill="#2B3A4A" font-family="Microsoft JhengHei, sans-serif">3</text>
+  <text x="235" y="340" text-anchor="middle" font-size="50" font-weight="900" fill="#2B3A4A" font-family="Microsoft JhengHei, sans-serif">5</text>
+</svg>`
+  }
   if (kind === 'make') {
     return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
   <rect width="300" height="400" fill="#F3E4C2"/>

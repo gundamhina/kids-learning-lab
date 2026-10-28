@@ -40,17 +40,22 @@ export function makePoolSize (n, tier) {
 }
 
 // 比多少：左右兩邊各幾個、問多還是少。低階差 3 以上、數量小；高階差 1、數量大，
-// 而且少的那邊東西畫大一點（不能只看哪邊占的地方大）
-export function compareQuestion (tier, rng, ask = rng() < 0.5 ? 'more' : 'less') {
+// 而且少的那邊東西畫大一點（不能只看哪邊占的地方大）。
+// equal：第 5 階起多一個「一樣多」可以選，大約四題有一題兩邊真的一樣多（一樣多時大小也故意畫得不一樣）
+export function compareQuestion (tier, rng, ask = rng() < 0.5 ? 'more' : 'less', { equal = false } = {}) {
   const max = tier >= 4 ? 10 : tier >= 2 ? 8 : 5
   const minGap = tier >= 4 ? 1 : tier >= 2 ? 2 : 3
+  const bigFewer = tier >= 3
+  if (equal && rng() < 0.25) {
+    const n = 2 + Math.floor(rng() * (max - 1))
+    return { left: n, right: n, ask, answer: 'equal', bigFewer, equal: true }
+  }
   let a, b
   do {
     a = 1 + Math.floor(rng() * max)
     b = 1 + Math.floor(rng() * max)
   } while (Math.abs(a - b) < minGap)
-  const bigFewer = tier >= 3
-  return { left: a, right: b, ask, answer: (ask === 'more') === (a > b) ? 'left' : 'right', bigFewer }
+  return { left: a, right: b, ask, answer: (ask === 'more') === (a > b) ? 'left' : 'right', bigFewer, equal }
 }
 
 // 數的東西：每題換一種（都有 Twemoji 圖檔）
@@ -64,4 +69,56 @@ export function scatter (n, rng, cols = n <= 6 ? 3 : n <= 12 ? 4 : 5) {
     (c % cols + 0.5 + (rng() - 0.5) * 0.35) / cols,
     (Math.floor(c / cols) + 0.5 + (rng() - 0.5) * 0.3) / rows,
   ])
+}
+
+// ---- 數一數變難：框裡混兩三種東西，只數指定的那一種（第 4 階起，第 5 階起混三種） ----
+// 回傳每個東西的圖和座標；別種的數量也挑得跟答案不一樣，不能數全部
+export function countMixed (n, tier, rng, icons = COUNT_ICONS) {
+  const kinds = tier >= 4 ? 3 : 2
+  const pool = mathShuffle(icons, rng).slice(0, kinds)
+  const counts = [n]
+  for (let k = 1; k < kinds; k++) {
+    let c
+    do { c = 1 + Math.floor(rng() * Math.max(3, Math.min(6, n + 2))) } while (c === n)
+    counts.push(c)
+  }
+  const list = mathShuffle(counts.flatMap((c, k) => Array(c).fill(pool[k])), rng)
+  const points = scatter(list.length, rng)
+  return { target: pool[0], items: list.map((icon, i) => ({ icon, at: points[i] })) }
+}
+
+// ---- 加減：題目寫成 '2+1'、'5-2'，十以內，一組一組解鎖 ----
+// 加到 5 → 5 以內減 → 加到 10（加 1～3）→ 10 以內減 1～3 → 加到 10（其他）→ 10 以內減（其他）
+function addFacts (keep) {
+  const out = []
+  for (let a = 1; a <= 9; a++) for (let b = 1; a + b <= 10; b++) if (keep(a, b)) out.push(a + '+' + b)
+  return out
+}
+function subFacts (keep) {
+  const out = []
+  for (let a = 2; a <= 10; a++) for (let b = 1; b < a; b++) if (keep(a, b)) out.push(a + '-' + b)
+  return out
+}
+export const CALC_GROUPS = [
+  addFacts((a, b) => a + b <= 5),
+  subFacts(a => a <= 5),
+  addFacts((a, b) => a + b > 5 && b <= 3),
+  subFacts((a, b) => a > 5 && b <= 3),
+  addFacts((a, b) => a + b > 5 && b > 3),
+  subFacts((a, b) => a > 5 && b > 3),
+]
+export function parseCalc (fact) {
+  const m = /^(\d+)([+-])(\d+)$/.exec(fact)
+  const a = Number(m[1])
+  const b = Number(m[3])
+  return { a, b, op: m[2], answer: m[2] === '+' ? a + b : a - b }
+}
+// 怎麼出題：第 1～2 階只有圖（拿走的打叉），第 3～4 階算式下面有圖，第 5～6 階只有數字
+export function calcLook (tier) {
+  return tier <= 1 ? 'pictures' : tier <= 3 ? 'both' : 'numbers'
+}
+// 唸題目、唸答案用的話
+export function calcSay (fact, withAnswer = false) {
+  const { a, b, op, answer } = parseCalc(fact)
+  return a + (op === '+' ? '加' : '減') + b + (withAnswer ? '等於' + answer : '是多少？')
 }
