@@ -142,3 +142,38 @@ export function mazeLevel (tier, rng) {
   }
   return { w, h, walls, start: [0, 0], exit, items }
 }
+
+// ---- 經典找不同 ----
+// 場景 600×420：天空和草地上放 7 樣東西（切格子放，不會疊在一起）。右邊那張改 3～5 個地方：
+// 少一個、換成別的、左右顛倒、變大（低到中階），換顏色、變小（高階）
+export const SPOT_ICONS = ['🌳', '🌻', '🌸', '🐶', '🐱', '🐰', '🐢', '🐝', '🦋', '🐞', '🍎', '🍓', '🎈', '🚗', '🏠', '⭐', '☀️', '🐟', '🐸', '🍄']
+export function spotScene (tier, rng) {
+  const t = Math.max(0, Math.min(5, tier))
+  const cols = 4; const rows = 3
+  const cells = brainShuffle([...Array(cols * rows).keys()], rng).slice(0, 7)
+  const icons = pickN(SPOT_ICONS, 7, rng)
+  const left = cells.map((c, i) => ({
+    icon: icons[i],
+    x: Math.round((c % cols + 0.5 + (rng() - 0.5) * 0.3) * 600 / cols),
+    y: Math.round((Math.floor(c / cols) + 0.5 + (rng() - 0.5) * 0.25) * 420 / rows),
+    s: Math.round(70 + rng() * 30),
+    flip: false,
+    hue: 0,
+  }))
+  const n = t <= 1 ? 3 : t <= 3 ? 4 : 5
+  const kinds = t <= 1 ? ['gone', 'swap'] : t <= 3 ? ['gone', 'swap', 'flip', 'big'] : ['swap', 'flip', 'hue', 'small', 'big']
+  const right = left.map(o => ({ ...o }))
+  const spare = SPOT_ICONS.filter(x => !icons.includes(x))
+  const diffs = pickN([...left.keys()], n, rng).map(i => {
+    const o = right[i]
+    const kind = kinds[Math.floor(rng() * kinds.length)]
+    if (kind === 'gone') o.gone = true
+    else if (kind === 'swap') o.icon = spare.splice(Math.floor(rng() * spare.length), 1)[0]
+    else if (kind === 'flip') o.flip = true
+    else if (kind === 'hue') o.hue = 150
+    else if (kind === 'small') o.s = Math.round(o.s * 0.6)
+    else if (kind === 'big') o.s = Math.round(o.s * 1.45)
+    return { i, kind, x: o.x, y: o.y, r: Math.max(left[i].s, o.s) * 0.75 }
+  })
+  return { left, right, diffs }
+}

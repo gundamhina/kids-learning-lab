@@ -1254,3 +1254,39 @@ html, body { overscroll-behavior: none; } /* 家長區捲到頂再往下拉，An
 .spell-h .spell-sign { left: 50%; translate: -50% 0; }
 #stage.portrait .spell-h .spell-sign { left: 50%; }
 #stage.portrait .spell-pic { left: 290px; top: 130px; }
+
+/* ================= 著色 ================= */
+.color-paper { position: absolute; left: 250px; top: 100px; width: 690px; height: 552px; padding: 12px; border-radius: 26px; background: var(--paper); border: 6px solid var(--wood); box-shadow: 0 10px 0 var(--wood); }
+.color-svg { width: 100%; height: 100%; display: block; touch-action: none; }
+.color-svg .cr { cursor: pointer; transition: fill .15s; }
+.color-palette { position: absolute; left: 965px; top: 100px; width: 200px; display: grid; grid-template-columns: repeat(3, 56px); gap: 10px; }
+.color-dot { width: 56px; height: 56px; border-radius: 50%; background: var(--c); border: 4px solid var(--wood); box-shadow: 0 4px 0 var(--wood); transition: scale .12s var(--ease-out); }
+.color-dot.on { scale: 1.18; box-shadow: 0 0 0 6px #2B3A4A; }
+.color-undo { position: absolute; left: 975px; top: 470px; width: 84px; height: 84px; }
+.color-ok { position: absolute; left: 1075px; top: 470px; width: 100px; height: 100px; }
+.color-frame .brain-dog { top: 470px; }
+#stage.portrait .color-paper { left: 40px; top: 120px; width: 720px; height: 576px; }
+#stage.portrait .color-palette { left: 40px; top: 740px; width: 720px; grid-template-columns: repeat(6, 70px); justify-content: center; }
+#stage.portrait .color-dot { width: 70px; height: 70px; }
+#stage.portrait .color-undo { left: 260px; top: 940px; }
+#stage.portrait .color-ok { left: 420px; top: 930px; }
+
+/* ================= 經典找不同 ================= */
+.spot-pane { position: absolute; top: 160px; width: 520px; height: 364px; border-radius: 22px; overflow: hidden; border: 6px solid var(--wood); box-shadow: 0 8px 0 var(--wood); background: #fff; }
+.spot-pane[data-side="l"] { left: 70px; }
+.spot-pane[data-side="r"] { left: 610px; }
+.spot-pane.shake { animation: shake .4s ease-in-out; }
+.spot-pane.done { border-color: #466E46; box-shadow: 0 0 0 10px rgba(107,158,107,.4), 0 8px 0 #466E46; }
+.spot-bg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.spot-obj { position: absolute; height: auto; pointer-events: none; }
+.spot-marks { position: absolute; inset: 0; pointer-events: none; }
+.spot-ring { position: absolute; border: 6px solid #E0955B; border-radius: 50%; animation: pop .35s; }
+.spot-hint { position: absolute; border-radius: 50%; background: rgba(232,200,106,.45); animation: answerGlow 1.1s ease-in-out 3; }
+.spot-dots { position: absolute; left: 0; right: 0; top: 560px; display: flex; justify-content: center; gap: 16px; }
+.spot-dot { width: 34px; height: 34px; border-radius: 50%; border: 4px solid var(--wood); background: var(--paper); }
+.spot-dot.on { background: #E0955B; animation: pop .3s; }
+.spot-frame .brain-dog { display: none; }
+#stage.portrait .spot-pane { left: 40px; width: 720px; height: 504px; }
+#stage.portrait .spot-pane[data-side="l"] { left: 40px; top: 130px; }
+#stage.portrait .spot-pane[data-side="r"] { left: 40px; top: 660px; }
+#stage.portrait .spot-dots { top: 1190px; }

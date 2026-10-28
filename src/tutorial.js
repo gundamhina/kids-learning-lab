@@ -177,6 +177,27 @@ const SCENES = {
     ${sparks('tut-fill-s', 371, 132)}
     ${hand('tut-fill-hand')}`,
 
+  // 著色：選一個顏色，點一塊塗滿（點擊動畫在 250,262）
+  coloring: `
+    <path d="M330 120 L420 50 L510 120 Z" fill="#FFFFFF" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>
+    <rect x="345" y="120" width="150" height="110" fill="#FFFFFF" stroke="${INK}" stroke-width="5"/>
+    <g class="tut-fish-b1"><circle cx="250" cy="262" r="40" fill="#E5534B" stroke="${WOOD}" stroke-width="6"/></g>
+    <circle cx="150" cy="262" r="40" fill="#5AB4E5" stroke="${WOOD}" stroke-width="6"/>
+    ${ripple('tut-fish-r', 250, 262)}${sparks('tut-fish-s', 250, 262)}
+    ${hand('tut-fish-hand')}`,
+
+  // 經典找不同：點下面那張不一樣的地方（點擊動畫在 250,262）
+  spot: `
+    <rect x="120" y="20" width="400" height="150" rx="16" fill="#D8ECF4" stroke="${WOOD}" stroke-width="5"/>
+    <text x="230" y="95" font-size="70" text-anchor="middle" dominant-baseline="central">🌳</text>
+    <text x="250" y="262" font-size="0">.</text>
+    <text x="400" y="95" font-size="60" text-anchor="middle" dominant-baseline="central">🐞</text>
+    <rect x="120" y="190" width="400" height="150" rx="16" fill="#D8ECF4" stroke="${WOOD}" stroke-width="5"/>
+    <text x="400" y="265" font-size="70" text-anchor="middle" dominant-baseline="central">🌳</text>
+    <g class="tut-fish-b1"><text x="250" y="262" font-size="60" text-anchor="middle" dominant-baseline="central">🦋</text></g>
+    ${ripple('tut-fish-r', 250, 262)}${sparks('tut-fish-s', 250, 262)}
+    ${hand('tut-fish-hand')}`,
+
   // 從詞拉一條線到圖
   match: `
     <rect x="60" y="148" width="190" height="110" rx="20" fill="#FFFDF7" stroke="${WOOD}" stroke-width="6"/>

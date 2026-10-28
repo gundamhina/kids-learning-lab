@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
-import { patternQuestion, oddQuestion, makeMaze, mazeDistances, mazeLevel, BRAIN_ICONS } from '../src/brainq.js';
+import { patternQuestion, oddQuestion, makeMaze, mazeDistances, mazeLevel, BRAIN_ICONS, spotScene, SPOT_ICONS } from '../src/brainq.js';
 import { twemojiName } from '../src/art.js';
 
 let seed = 9;
@@ -50,4 +50,18 @@ test('迷宮：每一格都走得到；寶物不在起點和出口', () => {
 
 test('動腦的圖都有圖檔', () => {
   for (const icon of BRAIN_ICONS) assert.ok(existsSync('img/emoji/' + twemojiName(icon) + '.svg'), icon);
+});
+
+test('經典找不同：差異數量照階級，每個差異右邊真的不一樣，圖檔都在', () => {
+  for (let tier = 0; tier < 6; tier++) {
+    for (let k = 0; k < 30; k++) {
+      const sc = spotScene(tier, rng);
+      assert.equal(sc.diffs.length, tier <= 1 ? 3 : tier <= 3 ? 4 : 5);
+      assert.equal(new Set(sc.diffs.map(d => d.i)).size, sc.diffs.length);
+      for (const d of sc.diffs) assert.notDeepEqual(sc.left[d.i], sc.right[d.i]);
+      const same = sc.left.filter((o, i) => !sc.diffs.some(d => d.i === i));
+      for (const o of same) assert.deepEqual(o, sc.right[sc.left.indexOf(o)]);
+    }
+  }
+  for (const icon of SPOT_ICONS) assert.ok(existsSync('img/emoji/' + twemojiName(icon) + '.svg'), icon);
 });

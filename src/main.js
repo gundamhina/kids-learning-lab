@@ -16,7 +16,9 @@ import { createSpell } from './spell.js'
 import { createFriend } from './friend.js'
 import { createCount, createMake, createCompare } from './mathgames.js'
 import { createPattern, createOdd, createMaze } from './braingames.js'
-import { patternQuestion, oddQuestion, mazeLevel } from './brainq.js'
+import { patternQuestion, oddQuestion, mazeLevel, spotScene } from './brainq.js'
+import { createColoring, COLOR_PICTURES } from './coloring.js'
+import { createSpot } from './spot.js'
 import { DIGIT_SYMBOLS, UPPER_SYMBOLS } from './latinstrokes.js'
 import { LETTER_GROUPS, SPELL_GROUPS, ENGLISH_ICON, letterOptions, letterPictureQuestion, wordTiles } from './english.js'
 import { countViewOf, countOptions, makePoolSize, compareQuestion, scatter, COUNT_ICONS } from './mathq.js'
@@ -34,9 +36,9 @@ const SETTINGS_KEY = 'zhuyin-rescue-settings'
 const MEMORY_PAIRS = 5
 // 每個玩法練哪一軌：聽（釣魚、打地鼠）、讀（唸給狗狗聽）、寫（寫給狗狗看）、詞（連連看、填空）、調（聲調填空）、拼（拼拼看）
 // 翻牌只借「聽」那一軌的出題池挑符號，不寫任何紀錄進去
-const TRACK_OF = { fishing: 'listen', whack: 'listen', memory: 'listen', speak: 'read', write: 'write', match: 'word', fill: 'word', tone: 'tone', learn: 'write', spell: 'spell', friend: 'friend', count: 'count', make: 'count', compare: 'compare', pattern: 'pattern', odd: 'odd', maze: 'maze', letterpic: 'letter', letterhear: 'letter', wordspell: 'eword', numwrite: 'count', abcwrite: 'letter' }
+const TRACK_OF = { fishing: 'listen', whack: 'listen', memory: 'listen', speak: 'read', write: 'write', match: 'word', fill: 'word', tone: 'tone', learn: 'write', spell: 'spell', friend: 'friend', count: 'count', make: 'count', compare: 'compare', pattern: 'pattern', odd: 'odd', maze: 'maze', letterpic: 'letter', letterhear: 'letter', wordspell: 'eword', numwrite: 'count', abcwrite: 'letter', spot: 'spot', coloring: 'pattern' }
 // 純練習的玩法：不記進度、沒有玩完的骨頭、不算今天的腳印
-const PRACTICE_KINDS = ['memory', 'learn', 'numwrite', 'abcwrite']
+const PRACTICE_KINDS = ['memory', 'learn', 'numwrite', 'abcwrite', 'coloring']
 const LEARN_SYMBOLS = 3 // 學寫字一局教幾個符號
 const MATCH_PAIRS = 4
 // 唸給狗狗聽的狀態訊息，寫給旁邊的大人看
@@ -161,6 +163,7 @@ function main () {
     if (t === 'pattern' || t === 'odd' || t === 'maze') return t
     if (t === 'letter') return odd ? 'letterhear' : 'letterpic'
     if (t === 'eword') return 'wordspell'
+    if (t === 'spot') return 'spot'
     if (t === 'read') return canSpeak() ? 'speak' : 'match'
     return 'write'
   }
@@ -477,6 +480,8 @@ function main () {
     if (which === 'letterpic') return runLetterPic()
     if (which === 'letterhear') return runLetterHear()
     if (which === 'wordspell') return runWordSpell()
+    if (which === 'spot') return runSpot()
+    if (which === 'coloring') return runColoring()
     if (which === 'numwrite') return runLatinWrite(DIGIT_SYMBOLS, 'num', s => audio.sayText(s))
     if (which === 'abcwrite') return runLatinWrite(UPPER_SYMBOLS, 'abc', s => audio.sayEnglish(s))
     runQuestions(which)
@@ -1233,6 +1238,66 @@ function main () {
       next()
     })
     next()
+  }
+
+  // 經典找不同：一局三頁，差異 3～5 個照階級。點錯三次以上這一頁就不算第一次就會；點錯兩次起標出一個（三級提示的意思）
+  function runSpot () {
+    game = createSpot(playArea, { color: myColor() })
+    replayBtn.classList.add('hidden')
+    const tier = effectiveTier(currentView())
+    round = [Math.max(0, tier - 1), tier, tier].map(t => ({ target: 'spot' + t, scene: spotScene(t, Math.random) }))
+    index = 0
+    starTotal = round.length
+    setStars()
+    let misses = 0
+    const myGame = game
+    const next = () => {
+      misses = 0
+      game.start(round[index].scene)
+      audio.sayText('找找看，哪裡不一樣？')
+    }
+    game.onMiss(() => {
+      misses++
+      audio.wrong()
+      if (misses === 2 || misses === 4) game.mark()
+    })
+    game.onFound(() => { audio.ding(); buzz(20) })
+    game.onDone(async () => {
+      const q = round[index]
+      const ok = misses < 3
+      const bones = questionReward(currentView(), q.target, ok)
+      commit({ target: q.target, ok, picked: q.target, ms: 0, drill: null })
+      rewardCorrect(ok, playArea.querySelector('.spot-dots'), bones)
+      audio.cheer()
+      await wait(1200)
+      if (game !== myGame) return
+      index++
+      if (index >= round.length) return finishRound()
+      next()
+    })
+    next()
+  }
+
+  // 著色：照順序換一張線稿；選顏色、點一塊塗滿。塗了一半以上按打勾就完成（給 2 根），太少請她多塗一點
+  function runColoring () {
+    game = createColoring(playArea, { color: myColor() })
+    replayBtn.classList.add('hidden')
+    starTotal = 1
+    setStars()
+    const pic = (state.colorNext || 0) % COLOR_PICTURES.length
+    if (!isTeacher()) { state = { ...state, colorNext: pic + 1 }; store.save(profile.id, state) }
+    game.start(pic)
+    game.onPaint(() => audio.pop())
+    game.onDone(async ratio => {
+      if (ratio < 0.5) { audio.sayText('再多塗一點點'); return }
+      game.lock()
+      earned.push(true)
+      setStars()
+      gain(2, game.svgEl)
+      audio.cheer()
+      await wait(800)
+      finishRound()
+    })
   }
 
   // ---- 拼拼看：聽一個音，照順序（由上往下）把符號拖進空格拼出來 ----

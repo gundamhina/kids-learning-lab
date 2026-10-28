@@ -575,6 +575,28 @@ export function cardArt (kind) {
   <path d="M100 330 l8 16 18 2 -13 12 3 18 -16 -9 -16 9 3 -18 -13 -12 18 -2z" fill="#E8C86A"/>
 </svg>`
   }
+  if (kind === 'coloring') {
+    return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="400" fill="#F3E4C2"/>
+  <rect x="30" y="50" width="240" height="210" rx="18" fill="#FFFDF7" stroke="#B08A63" stroke-width="6"/>
+  <path d="M80 160 L150 100 L220 160 Z" fill="#E5534B" stroke="#2B3A4A" stroke-width="5" stroke-linejoin="round"/>
+  <rect x="95" y="160" width="110" height="80" fill="#F5C542" stroke="#2B3A4A" stroke-width="5"/>
+  <rect x="135" y="195" width="30" height="45" fill="#FFFFFF" stroke="#2B3A4A" stroke-width="5"/>
+  <g stroke="#B08A63" stroke-width="4"><circle cx="60" cy="320" r="22" fill="#E5534B"/><circle cx="120" cy="320" r="22" fill="#F5C542"/><circle cx="180" cy="320" r="22" fill="#5AB4E5"/><circle cx="240" cy="320" r="22" fill="#8BC34A"/></g>
+</svg>`
+  }
+  if (kind === 'spot') {
+    return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="400" fill="#F3E4C2"/>
+  <rect x="25" y="40" width="250" height="150" rx="16" fill="#D8ECF4" stroke="#B08A63" stroke-width="5"/>
+  <rect x="25" y="210" width="250" height="150" rx="16" fill="#D8ECF4" stroke="#B08A63" stroke-width="5"/>
+  <text x="90" y="135" text-anchor="middle" font-size="56">\u{1F333}</text>
+  <text x="200" y="140" text-anchor="middle" font-size="46">\u{1F41E}</text>
+  <text x="90" y="305" text-anchor="middle" font-size="56">\u{1F333}</text>
+  <text x="200" y="310" text-anchor="middle" font-size="46">\u{1F98B}</text>
+  <circle cx="200" cy="295" r="36" fill="none" stroke="#E0955B" stroke-width="6"/>
+</svg>`
+  }
   if (kind === 'tone') {
     return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
   <rect width="300" height="400" fill="#F3E4C2"/>
