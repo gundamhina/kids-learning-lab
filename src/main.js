@@ -1684,7 +1684,7 @@ function main () {
         const blob = new Blob([store.exportJson(state)], { type: 'application/json' })
         const a = document.createElement('a')
         a.href = URL.createObjectURL(blob)
-        a.download = 'zhuyin-rescue-' + profile.name + '.json'
+        a.download = 'kids-learning-lab-' + profile.name + '.json'
         a.click()
       },
       onImport (text) {

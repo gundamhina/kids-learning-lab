@@ -1,5 +1,5 @@
 # push 到 master 就 build 並部署到 GitHub Pages。
-# 第一次跑會自動把 Pages 打開（repo 要是公開的）。網址：https://gundamhina.github.io/zhuyin-rescue/
+# 第一次跑會自動把 Pages 打開（repo 要是公開的）。網址：https://gundamhina.github.io/kids-learning-lab/
 name: pages
 on:
   push:

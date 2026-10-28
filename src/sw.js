@@ -10,7 +10,7 @@ const ASSET_CACHE = 'zhuyin-assets'
 // { '相對路徑（已經過網址編碼）': '內容雜湊' }
 const ASSET_HASH = __ASSETS__
 const SHELL_FILES = ['index.html', 'manifest.webmanifest']
-const BASE = new URL(self.registration.scope).pathname // 例如 /zhuyin-rescue/
+const BASE = new URL(self.registration.scope).pathname // 例如 /kids-learning-lab/
 
 const assetKey = path => BASE + path + '?sw=' + ASSET_HASH[path]
 

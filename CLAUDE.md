@@ -10,3 +10,6 @@
 ## 題庫讀音
 - 注音以教育部《國語辭典簡編本》為準。改 `tools/gen_syllables.py` 後跑 `python tools/check_moe.py`（第一次會下載約 7 MB 的辭典資料到 `tools/.moe/`），要修的必須是 0。
 - 新組一律接在最後：存檔的練習範圍和解鎖進度靠組的索引。
+
+## 名稱
+- 2026-10 改名 Kids Learning Lab，repo 和網址改成 `kids-learning-lab`。存檔的 localStorage 代號（`zhuyin-rescue:`、`zhuyin-rescue-profiles`、`zhuyin-rescue-settings`、`zhuyin-rescue-hint`）**不要改**，一改舊進度就讀不到。
