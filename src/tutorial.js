@@ -281,6 +281,9 @@ const SCENES = {
 
 // 寫數字、寫字母的教學跟學寫字一樣
 SCENES.numwrite = SCENES.learn
+// 圖形類比、拼板補洞跟找規律一樣是點選項
+SCENES.analogy = SCENES.pattern
+SCENES.tiles = SCENES.pattern
 SCENES.abcwrite = SCENES.learn
 
 const GO_SVG = '<svg viewBox="0 0 24 24" width="64" height="64" fill="#fff"><path d="M8 5v14l11-7z"/></svg>'

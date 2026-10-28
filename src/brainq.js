@@ -177,3 +177,30 @@ export function spotScene (tier, rng) {
   })
   return { left, right, diffs }
 }
+
+// ---- 圖形類比：A 變成 B，C 會變成什麼？ ----
+// 變化：變小、左右顛倒、變兩個、換顏色、轉個方向（低階只有前兩種）
+const ANALOGY_TS = [['small', 'flip'], ['small', 'flip', 'two'], ['small', 'flip', 'two', 'color'], ['flip', 'two', 'color', 'turn'], ['two', 'color', 'turn', 'small'], ['color', 'turn', 'two', 'flip']]
+export function analogyQuestion (tier, rng) {
+  const t = Math.max(0, Math.min(5, tier))
+  const tf = ANALOGY_TS[t][Math.floor(rng() * ANALOGY_TS[t].length)]
+  const pool = tf === 'flip' || tf === 'turn' ? ODD_ASYM : BRAIN_ICONS
+  const [i1, i2] = pickN(pool, 2, rng)
+  const other = pickN(ANALOGY_TS[5].filter(x => x !== tf), 1, rng)[0]
+  const answer = { icon: i2, t: tf }
+  const opts = brainShuffle([answer, { icon: i2, t: null }, { icon: i2, t: other }], rng)
+  return { a: { icon: i1, t: null }, b: { icon: i1, t: tf }, c: { icon: i2, t: null }, options: opts, answerIndex: opts.indexOf(answer), kind: tf }
+}
+
+// ---- 拼板補洞：照左邊的圖，右邊缺一塊，選轉對方向的那一塊 ----
+// 每一格是一塊三角板（正方形對角切一半上色），o 是轉了幾個 90 度。低階 2×2，高階 3×3；選項 3～4 塊
+export function tilesQuestion (tier, rng) {
+  const t = Math.max(0, Math.min(5, tier))
+  const n = t <= 2 ? 2 : 3
+  const board = Array.from({ length: n * n }, () => Math.floor(rng() * 4))
+  const hole = Math.floor(rng() * board.length)
+  const right = board[hole]
+  const k = t <= 1 ? 3 : 4
+  const opts = brainShuffle([right, ...brainShuffle([0, 1, 2, 3].filter(o => o !== right), rng).slice(0, k - 1)], rng)
+  return { n, board, hole, options: opts, answerIndex: opts.indexOf(right), kind: 'tiles' + n }
+}

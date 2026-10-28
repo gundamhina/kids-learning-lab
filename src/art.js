@@ -597,6 +597,32 @@ export function cardArt (kind) {
   <circle cx="200" cy="295" r="36" fill="none" stroke="#E0955B" stroke-width="6"/>
 </svg>`
   }
+  if (kind === 'analogy') {
+    return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="400" fill="#F3E4C2"/>
+  <rect x="30" y="60" width="90" height="90" rx="16" fill="#FFFDF7" stroke="#B08A63" stroke-width="5"/>
+  <rect x="180" y="60" width="90" height="90" rx="16" fill="#FFFDF7" stroke="#B08A63" stroke-width="5"/>
+  <rect x="30" y="200" width="90" height="90" rx="16" fill="#FFFDF7" stroke="#B08A63" stroke-width="5"/>
+  <rect x="180" y="200" width="90" height="90" rx="16" fill="#FFF3B0" stroke="#E0955B" stroke-width="5" stroke-dasharray="9 7"/>
+  <text x="75" y="125" text-anchor="middle" font-size="58">\u{1F41F}</text>
+  <text x="225" y="118" text-anchor="middle" font-size="34">\u{1F41F}</text>
+  <text x="75" y="265" text-anchor="middle" font-size="58">\u{1F422}</text>
+  <text x="225" y="265" text-anchor="middle" font-size="60" font-weight="900" fill="#E0955B">?</text>
+  <g fill="none" stroke="#B08A63" stroke-width="5" stroke-linecap="round"><path d="M128 105h40M158 96l10 9-10 9"/><path d="M128 245h40M158 236l10 9-10 9"/></g>
+</svg>`
+  }
+  if (kind === 'tiles') {
+    return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="400" fill="#F3E4C2"/>
+  <rect x="40" y="50" width="220" height="220" rx="18" fill="#8A6A4C"/>
+  <g><rect x="52" y="62" width="96" height="96" fill="#FFFDF7"/><path d="M52 158 L148 158 L148 62 Z" fill="#5AB4E5"/>
+  <rect x="152" y="62" width="96" height="96" fill="#FFFDF7"/><path d="M152 62 L248 62 L152 158 Z" fill="#5AB4E5"/>
+  <rect x="52" y="162" width="96" height="96" fill="#FFFDF7"/><path d="M52 162 L148 162 L148 258 Z" fill="#5AB4E5"/>
+  <rect x="152" y="162" width="96" height="96" fill="none" stroke="#FFF3B0" stroke-width="5" stroke-dasharray="10 8"/></g>
+  <rect x="60" y="300" width="70" height="70" rx="12" fill="#FFF3B0" stroke="#C39A1E" stroke-width="5"/><path d="M68 362 L122 362 L68 308 Z" fill="#5AB4E5"/>
+  <rect x="170" y="300" width="70" height="70" rx="12" fill="#CFE8C6" stroke="#466E46" stroke-width="6"/><path d="M178 308 L178 362 L232 308 Z" fill="#5AB4E5"/>
+</svg>`
+  }
   if (kind === 'tone') {
     return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
   <rect width="300" height="400" fill="#F3E4C2"/>

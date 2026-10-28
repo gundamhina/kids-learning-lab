@@ -15,8 +15,8 @@ import { createFillBlank } from './fillblank.js'
 import { createSpell } from './spell.js'
 import { createFriend } from './friend.js'
 import { createCount, createMake, createCompare } from './mathgames.js'
-import { createPattern, createOdd, createMaze } from './braingames.js'
-import { patternQuestion, oddQuestion, mazeLevel, spotScene } from './brainq.js'
+import { createPattern, createOdd, createMaze, createAnalogy, createTiles } from './braingames.js'
+import { patternQuestion, oddQuestion, mazeLevel, spotScene, analogyQuestion, tilesQuestion } from './brainq.js'
 import { createColoring, COLOR_PICTURES } from './coloring.js'
 import { createSpot } from './spot.js'
 import { DIGIT_SYMBOLS, UPPER_SYMBOLS } from './latinstrokes.js'
@@ -36,7 +36,7 @@ const SETTINGS_KEY = 'zhuyin-rescue-settings'
 const MEMORY_PAIRS = 5
 // 每個玩法練哪一軌：聽（釣魚、打地鼠）、讀（唸給狗狗聽）、寫（寫給狗狗看）、詞（連連看、填空）、調（聲調填空）、拼（拼拼看）
 // 翻牌只借「聽」那一軌的出題池挑符號，不寫任何紀錄進去
-const TRACK_OF = { fishing: 'listen', whack: 'listen', memory: 'listen', speak: 'read', write: 'write', match: 'word', fill: 'word', tone: 'tone', learn: 'write', spell: 'spell', friend: 'friend', count: 'count', make: 'count', compare: 'compare', pattern: 'pattern', odd: 'odd', maze: 'maze', letterpic: 'letter', letterhear: 'letter', wordspell: 'eword', numwrite: 'count', abcwrite: 'letter', spot: 'spot', coloring: 'pattern' }
+const TRACK_OF = { fishing: 'listen', whack: 'listen', memory: 'listen', speak: 'read', write: 'write', match: 'word', fill: 'word', tone: 'tone', learn: 'write', spell: 'spell', friend: 'friend', count: 'count', make: 'count', compare: 'compare', pattern: 'pattern', odd: 'odd', maze: 'maze', letterpic: 'letter', letterhear: 'letter', wordspell: 'eword', numwrite: 'count', abcwrite: 'letter', spot: 'spot', coloring: 'pattern', analogy: 'pattern', tiles: 'pattern' }
 // 純練習的玩法：不記進度、沒有玩完的骨頭、不算今天的腳印
 const PRACTICE_KINDS = ['memory', 'learn', 'numwrite', 'abcwrite', 'coloring']
 const LEARN_SYMBOLS = 3 // 學寫字一局教幾個符號
@@ -481,6 +481,8 @@ function main () {
     if (which === 'letterhear') return runLetterHear()
     if (which === 'wordspell') return runWordSpell()
     if (which === 'spot') return runSpot()
+    if (which === 'analogy') return runAnalogy()
+    if (which === 'tiles') return runTiles()
     if (which === 'coloring') return runColoring()
     if (which === 'numwrite') return runLatinWrite(DIGIT_SYMBOLS, 'num', s => audio.sayText(s))
     if (which === 'abcwrite') return runLatinWrite(UPPER_SYMBOLS, 'abc', s => audio.sayEnglish(s))
@@ -1185,6 +1187,39 @@ function main () {
       isRight: (q, i) => i === game.answerIndex(),
       onRight: null,
       sayQuestion: (q, onStart) => audio.sayText(PATTERN_ASK[q.mode], { onStart }),
+      demoText: () => '',
+    })
+  }
+  // 圖形類比、拼板補洞：跟找規律記在同一軌（律），題目是變化的種類、板子大小
+  function runAnalogy () {
+    game = createAnalogy(playArea, { color: myColor() })
+    replayBtn.classList.add('hidden')
+    round = brainRound(tier => { const a = analogyQuestion(tier, Math.random); return { ...a, target: 'analogy:' + a.kind } })
+    index = 0
+    starTotal = round.length
+    setStars()
+    mathQuestions({
+      ask: q => game.start(q),
+      target: q => q.target,
+      isRight: (q, i) => i === q.answerIndex,
+      onRight: null,
+      sayQuestion: (q, onStart) => audio.sayText('上面這個變成這樣，下面的會變成哪一個？', { onStart }),
+      demoText: () => '',
+    })
+  }
+  function runTiles () {
+    game = createTiles(playArea, { color: myColor() })
+    replayBtn.classList.add('hidden')
+    round = brainRound(tier => { const t = tilesQuestion(tier, Math.random); return { ...t, target: 'tiles:' + t.n } })
+    index = 0
+    starTotal = round.length
+    setStars()
+    mathQuestions({
+      ask: q => game.start(q),
+      target: q => q.target,
+      isRight: (q, i) => i === q.answerIndex,
+      onRight: null,
+      sayQuestion: (q, onStart) => audio.sayText('照左邊的圖，缺的是哪一塊？', { onStart }),
       demoText: () => '',
     })
   }

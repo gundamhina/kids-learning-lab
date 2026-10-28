@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
-import { patternQuestion, oddQuestion, makeMaze, mazeDistances, mazeLevel, BRAIN_ICONS, spotScene, SPOT_ICONS } from '../src/brainq.js';
+import { patternQuestion, oddQuestion, makeMaze, mazeDistances, mazeLevel, BRAIN_ICONS, spotScene, SPOT_ICONS, analogyQuestion, tilesQuestion } from '../src/brainq.js';
 import { twemojiName } from '../src/art.js';
 
 let seed = 9;
@@ -64,4 +64,18 @@ test('經典找不同：差異數量照階級，每個差異右邊真的不一�
     }
   }
   for (const icon of SPOT_ICONS) assert.ok(existsSync('img/emoji/' + twemojiName(icon) + '.svg'), icon);
+});
+
+test('圖形類比、拼板補洞：只有一個答案、選項不重複', () => {
+  for (let tier = 0; tier < 6; tier++) for (let k = 0; k < 50; k++) {
+    const a = analogyQuestion(tier, rng);
+    assert.equal(a.options.length, 3);
+    assert.equal(new Set(a.options.map(o => o.icon + o.t)).size, 3);
+    assert.equal(a.options[a.answerIndex].t, a.b.t);
+    assert.equal(a.options[a.answerIndex].icon, a.c.icon);
+    const t = tilesQuestion(tier, rng);
+    assert.equal(t.board.length, t.n * t.n);
+    assert.equal(new Set(t.options).size, t.options.length);
+    assert.equal(t.options[t.answerIndex], t.board[t.hole]);
+  }
 });

@@ -233,3 +233,98 @@ export function createMaze (root, { color = 0 } = {}) {
     destroy () { window.removeEventListener('keydown', onKey); root.innerHTML = ''; moveFn = bumpFn = doneFn = null },
   }
 }
+
+// ---- 圖形類比：左邊 A → B、C → ?，右邊三個選項 ----
+// 變化的畫法：small 變小、flip 左右顛倒、turn 轉 90 度、color 換顏色、two 變兩個
+function analogyItem (it) {
+  const style = { small: 'transform:scale(.6)', flip: 'transform:scaleX(-1)', turn: 'transform:rotate(90deg)', color: 'filter:hue-rotate(150deg) saturate(1.4)' }[it.t] || ''
+  const img = `<img class="brain-img" src="img/emoji/${twemojiName(it.icon)}.svg" alt="" draggable="false" style="${style}">`
+  return it.t === 'two' ? `<span class="an-two">${img}${img}</span>` : img
+}
+const AN_ARROW = '<svg viewBox="0 0 40 24" width="56" height="34"><path d="M2 12h30M24 4l10 8-10 8" fill="none" stroke="#B08A63" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+export function createAnalogy (root, { color = 0 } = {}) {
+  const dog = brainShell(root, color, 'analogy-frame', '<div class="an-grid"></div><div class="an-opts"></div>')
+  const gridEl = root.querySelector('.an-grid')
+  const optsEl = root.querySelector('.an-opts')
+  let handler = null
+  let locked = true
+  let q = null
+  optsEl.addEventListener('pointerdown', e => {
+    const c = e.target.closest('.an-opt')
+    if (!c || locked || !handler || c.classList.contains('right')) return
+    handler(Number(c.dataset.i), c)
+  })
+  const optOf = i => optsEl.querySelector(`.an-opt[data-i="${i}"]`)
+  return {
+    start (question) {
+      q = question
+      locked = true
+      gridEl.innerHTML = `<div class="an-cell">${analogyItem(q.a)}</div>${AN_ARROW}<div class="an-cell">${analogyItem(q.b)}</div>` +
+        `<div class="an-cell">${analogyItem(q.c)}</div>${AN_ARROW}<div class="an-cell an-q">?</div>`
+      optsEl.innerHTML = q.options.map((o, i) => `<button class="an-opt" data-i="${i}">${analogyItem(o)}</button>`).join('')
+    },
+    unlock () { locked = false },
+    lock () { locked = true },
+    hint () { brainShake(optOf(q.answerIndex)) },
+    mark () { const c = optOf(q.answerIndex); if (c) c.classList.add('answer-glow') },
+    shake (i) { brainShake(optOf(i)) },
+    celebrate (i) {
+      const c = optOf(i)
+      if (c) { c.classList.remove('answer-glow'); c.classList.add('right') }
+      const qc = gridEl.querySelector('.an-q')
+      if (qc) { qc.classList.remove('an-q'); qc.innerHTML = analogyItem(q.options[q.answerIndex]) }
+      dog.jump()
+      return new Promise(resolve => setTimeout(resolve, 800))
+    },
+    sad () { dog.tilt() },
+    onAnswer (fn) { handler = fn },
+    layout () {},
+    destroy () { root.innerHTML = ''; handler = null },
+  }
+}
+
+// ---- 拼板補洞：左邊是完整的圖，右邊缺一塊，選轉對方向的三角板 ----
+const triTile = o => `<svg class="tri" viewBox="0 0 100 100" style="transform:rotate(${o * 90}deg)"><rect width="100" height="100" fill="#FFFDF7"/><path d="M0 100 L100 100 L100 0 Z" fill="#5AB4E5"/></svg>`
+export function createTiles (root, { color = 0 } = {}) {
+  const dog = brainShell(root, color, 'tiles-frame', '<div class="tl-board" data-b="model"></div><div class="tl-board" data-b="goal"></div><div class="tl-opts"></div>')
+  const model = root.querySelector('[data-b="model"]')
+  const goal = root.querySelector('[data-b="goal"]')
+  const optsEl = root.querySelector('.tl-opts')
+  let handler = null
+  let locked = true
+  let q = null
+  optsEl.addEventListener('pointerdown', e => {
+    const c = e.target.closest('.tl-opt')
+    if (!c || locked || !handler || c.classList.contains('right')) return
+    handler(Number(c.dataset.i), c)
+  })
+  const optOf = i => optsEl.querySelector(`.tl-opt[data-i="${i}"]`)
+  return {
+    start (question) {
+      q = question
+      locked = true
+      for (const b of [model, goal]) { b.style.setProperty('--n', q.n); b.classList.remove('glow') }
+      model.innerHTML = q.board.map(o => `<span class="tl-cell">${triTile(o)}</span>`).join('')
+      goal.innerHTML = q.board.map((o, i) => `<span class="tl-cell ${i === q.hole ? 'tl-hole' : ''}">${i === q.hole ? '' : triTile(o)}</span>`).join('')
+      optsEl.innerHTML = q.options.map((o, i) => `<button class="tl-opt" data-i="${i}">${triTile(o)}</button>`).join('')
+    },
+    unlock () { locked = false },
+    lock () { locked = true },
+    hint () { brainShake(optOf(q.answerIndex)) },
+    mark () { const c = optOf(q.answerIndex); if (c) c.classList.add('answer-glow') },
+    shake (i) { brainShake(optOf(i)) },
+    celebrate (i) {
+      const c = optOf(i)
+      if (c) { c.classList.remove('answer-glow'); c.classList.add('right') }
+      const h = goal.querySelector('.tl-hole')
+      if (h) { h.classList.remove('tl-hole'); h.innerHTML = triTile(q.board[q.hole]) }
+      goal.classList.add('glow')
+      dog.jump()
+      return new Promise(resolve => setTimeout(resolve, 800))
+    },
+    sad () { dog.tilt() },
+    onAnswer (fn) { handler = fn },
+    layout () {},
+    destroy () { root.innerHTML = ''; handler = null },
+  }
+}
