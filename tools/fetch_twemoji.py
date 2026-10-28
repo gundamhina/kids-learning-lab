@@ -27,9 +27,13 @@ def twemoji_name(emoji):
     return '-'.join(f'{ord(c):x}' for c in emoji)
 
 
+# 詞庫以外要用的圖：英文字母的例詞（src/english.js）
+EXTRA_ICONS = ['🎩', '🪺', '🦉', '🐍', '🦄', '📦', '🪀', '🧶']
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
-    icons = [ic for name, items in g.parse_words() for t, z, ic in items]
+    icons = [ic for name, items in g.parse_words() for t, z, ic in items] + EXTRA_ICONS
     got, skipped, failed = 0, 0, []
     for ic in icons:
         path = os.path.join(OUT, twemoji_name(ic) + '.svg')

@@ -29,8 +29,9 @@ export const TIERS = [
 // 認軌（符號找朋友）記的是「看到這個符號，知不知道哪些詞有這個音」。
 // 數學：數軌（數一數、做數量，題目是數字）、比軌（比多少，題目是 more／less）
 // 動腦：律軌（找規律，題目是題型）、異軌（選卡片找不同，題目是差在哪）、迷軌（迷宮，題目是大小）
-export const TRACKS = ['listen', 'read', 'write', 'word', 'tone', 'spell', 'friend', 'count', 'compare', 'pattern', 'odd', 'maze']
-export const TRACK_NAMES = { listen: '聽', read: '讀', write: '寫', word: '詞', tone: '調', spell: '拼', friend: '認', count: '數', compare: '比', pattern: '律', odd: '異', maze: '迷' }
+// 英文：字軌（認字母、聽發音，題目是字母）、拼英軌（拼單字，題目是單字）
+export const TRACKS = ['listen', 'read', 'write', 'word', 'tone', 'spell', 'friend', 'count', 'compare', 'pattern', 'odd', 'maze', 'letter', 'eword']
+export const TRACK_NAMES = { listen: '聽', read: '讀', write: '寫', word: '詞', tone: '調', spell: '拼', friend: '認', count: '數', compare: '比', pattern: '律', odd: '異', maze: '迷', letter: '字', eword: '拼英' }
 // 注音的軌（家長區注音進度頁只列這些）
 export const ZHUYIN_TRACKS = ['listen', 'read', 'write', 'word', 'tone', 'spell', 'friend']
 const TRACK_FIELDS = ['mastery', 'confusions', 'tier', 'recent', 'log']

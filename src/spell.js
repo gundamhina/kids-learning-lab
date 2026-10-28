@@ -22,8 +22,23 @@ function spellTileSlots (n, top) {
   })
 }
 
-export function createSpell (root, { color = 0 } = {}) {
-  root.innerHTML = bgHtml('room') + '<div class="frame">' +
+// glyph：磁磚和格子裡怎麼畫（預設注音）；whole：拼完整個怎麼畫；picHtml：有的話牌子旁邊放一張圖；
+// horizontal：格子橫排（英文拼單字）
+// 橫排（英文拼單字）：牌子固定在上面，磁磚排在下面；直的時候四塊一排
+function spellTileSlotsH (n) {
+  const cols = Math.min(n, STAGE.portrait ? 4 : 7)
+  const rows = Math.ceil(n / cols)
+  const cx = STAGE.portrait ? 400 : 600
+  const top = STAGE.portrait ? 760 : 520
+  return Array.from({ length: n }, (_, i) => {
+    const r = Math.floor(i / cols)
+    const m = Math.min(cols, n - r * cols)
+    return [Math.round(cx + (i - r * cols - (m - 1) / 2) * 175), top + r * 185]
+  })
+}
+
+export function createSpell (root, { color = 0, glyph = symbolMarkup, whole = symbolMarkup, picHtml = null, horizontal = false } = {}) {
+  root.innerHTML = bgHtml('room') + `<div class="frame${horizontal ? ' spell-h' : ''}">` + (picHtml ? '<div class="spell-pic"></div>' : '') +
     '<div class="dog-wrap spell-dog">' + dogSvg(color) + '</div>' +
     '<div class="sign spell-sign"><div class="sign-board"><div class="spell-slots"></div></div><div class="sign-post"></div></div>' +
     '<div class="tiles"></div></div>'
@@ -42,7 +57,7 @@ export function createSpell (root, { color = 0 } = {}) {
 
   function renderSlots () {
     slotsEl.innerHTML = pieces.map((p, i) => i < filled
-      ? `<div class="spell-slot filled"><span>${symbolMarkup(p)}</span></div>`
+      ? `<div class="spell-slot filled"><span>${glyph(p)}</span></div>`
       : `<div class="spell-slot ${i === filled ? 'next' : ''}"></div>`).join('')
   }
 
@@ -95,15 +110,16 @@ export function createSpell (root, { color = 0 } = {}) {
     signEl.style.top = groupTop + 'px'
     return groupTop + 520 + SPELL_TILE / 2
   }
+  const slotsFor = n => horizontal ? spellTileSlotsH(n) : spellTileSlots(n, tilesTop())
   function slotOf (i) {
-    const tiles = [...tilesEl.children]
-    return spellTileSlots(tiles.length, tilesTop())[i]
+    return slotsFor(tilesEl.children.length)[i]
   }
   function placeTiles () {
     // 橫的：牌子依格數長高，中心對齊畫面中間（跟右邊的磁磚同高）
-    if (!STAGE.portrait) signEl.style.top = Math.round(390 - signEl.querySelector('.sign-board').offsetHeight / 2) + 'px'
+    if (horizontal) signEl.style.top = (STAGE.portrait ? 420 : 90) + 'px'
+    else if (!STAGE.portrait) signEl.style.top = Math.round(390 - signEl.querySelector('.sign-board').offsetHeight / 2) + 'px'
     const tiles = [...tilesEl.children]
-    const slots = spellTileSlots(tiles.length, tilesTop())
+    const slots = slotsFor(tiles.length)
     tiles.forEach((t, i) => {
       if (t.classList.contains('dragging') || t.classList.contains('gone')) return
       t.style.left = (slots[i][0] - SPELL_TILE / 2) + 'px'
@@ -117,18 +133,20 @@ export function createSpell (root, { color = 0 } = {}) {
     filled = 0
     locked = true
     signEl.classList.remove('glow', 'done')
+    const picEl = root.querySelector('.spell-pic')
+    if (picEl && picHtml) picEl.innerHTML = picHtml(question.target)
     renderSlots()
     tilesEl.innerHTML = ''
     tiles.forEach(sym => {
       const t = document.createElement('div')
       t.className = 'tile'
       t.dataset.symbol = sym
-      t.innerHTML = `<span>${symbolMarkup(sym)}</span>`
+      t.innerHTML = `<span>${glyph(sym)}</span>`
       tilesEl.appendChild(t)
     })
     placeTiles()
   }
-  function tileOf (sym) { return tilesEl.querySelector(`.tile[data-symbol="${sym}"]`) }
+  function tileOf (sym) { return tilesEl.querySelector(`.tile[data-symbol="${sym}"]:not(.gone)`) } // 英文同一個字母可能有兩塊
   function unlock () { locked = false }
   function lock () { locked = true }
   // 對了：這個符號放進下一格，那塊磁磚消失
@@ -140,7 +158,7 @@ export function createSpell (root, { color = 0 } = {}) {
   }
   // 全部拼好：空格換成完整的音節（直排、含調號），跟課本一樣
   function complete () {
-    slotsEl.innerHTML = `<div class="spell-whole">${symbolMarkup(current.target)}</div>`
+    slotsEl.innerHTML = `<div class="spell-whole">${whole(current.target)}</div>`
     signEl.classList.add('done')
   }
   // 錯了：彈回原位晃一下

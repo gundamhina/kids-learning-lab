@@ -277,12 +277,16 @@ export const SUBJECTS = [
   { key: 'math', name: '數學', color: '#D9844B', label: '123', categories: [
     { key: 'count', name: '數數', color: '#D9844B', games: ['count', 'make', 'compare'] },
   ] },
+  { key: 'english', name: '英文', color: '#3F8F8C', label: 'ABC', categories: [
+    { key: 'english', name: '英文', color: '#3F8F8C', games: ['letterpic', 'letterhear', 'wordspell'] },
+  ] },
   { key: 'brain', name: '動腦', color: '#8A6FB0', label: '🧩', categories: [
     { key: 'brain', name: '動腦', color: '#8A6FB0', games: ['pattern', 'odd', 'maze'] },
   ] },
 ]
 let openSubject = null // 進了哪個科目；從遊戲回來時留在剛剛那一科
 const CAT_ICONS = {
+  english: '<svg viewBox="0 0 24 24" fill="#fff"><text x="12" y="17" text-anchor="middle" font-size="13" font-weight="900" font-family="Arial, sans-serif">Aa</text></svg>',
   brain: '<svg viewBox="0 0 24 24" fill="#fff"><path d="M4 4h6v2.2a1.8 1.8 0 1 0 3.6 0V4H20v6h-2.2a1.8 1.8 0 1 0 0 3.6H20V20h-6v-2.2a1.8 1.8 0 1 0-3.6 0V20H4v-6.4h2.2a1.8 1.8 0 1 0 0-3.6H4z"/></svg>',
   count: '<svg viewBox="0 0 24 24" fill="#fff"><circle cx="6" cy="8" r="2.6"/><circle cx="12" cy="8" r="2.6"/><circle cx="18" cy="8" r="2.6"/><circle cx="9" cy="15.5" r="2.6"/><circle cx="15" cy="15.5" r="2.6"/></svg>',
   listen: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9a5 5 0 1 1 10 0c0 3-2.5 4-3 6.5-.4 2-1.8 3.5-4 3.5"/><path d="M10 9.5a2 2 0 1 1 4 0c0 1.3-1.3 1.8-1.5 3"/></svg>',
@@ -548,7 +552,7 @@ const VOLUMES = [['voiceVol', '發音'], ['sfxVol', '音效'], ['musicVol', '背
 const volPct = (settings, key) => Math.round((typeof settings[key] === 'number' ? settings[key] : 1) * 100)
 // 音量那一列：家長區、老師後台都放在最上面
 // ---- 學習統計（全部科目）：練習日曆、每天玩幾分鐘、每一軌第一次就答對的比例、筆順最常錯在哪 ----
-const TRACK_GAMES = { listen: '釣魚、打地鼠', read: '唸唸看', write: '寫寫看', word: '連連看、填空', tone: '聲調填空', spell: '拼拼看', friend: '符號找朋友', count: '數一數、做數量', compare: '比多少', pattern: '找規律', odd: '找不同', maze: '迷宮' }
+const TRACK_GAMES = { letter: '認字母、聽字母', eword: '拼單字', listen: '釣魚、打地鼠', read: '唸唸看', write: '寫寫看', word: '連連看、填空', tone: '聲調填空', spell: '拼拼看', friend: '符號找朋友', count: '數一數、做數量', compare: '比多少', pattern: '找規律', odd: '找不同', maze: '迷宮' }
 function overviewHtml (full) {
   const { cal, perTrack } = overviewStats(full)
   const max = Math.max(1, ...cal.map(c => c.n))
@@ -618,7 +622,7 @@ function bindVolume (root, settings, onSettings, onVolumeTest) {
   })
 }
 // 首頁的玩法卡，老師後台可以挑上課要顯示哪幾個
-export const GAME_NAMES = { fishing: '釣魚', whack: '打地鼠', memory: '翻牌', match: '連連看', fill: '填空', tone: '聲調填空', write: '寫寫看', learn: '學寫字', speak: '唸唸看', chart: '注音表', spell: '拼拼看', friend: '符號找朋友', count: '數一數', make: '做數量', compare: '比多少', pattern: '找規律', odd: '找不同', maze: '迷宮' }
+export const GAME_NAMES = { fishing: '釣魚', whack: '打地鼠', memory: '翻牌', match: '連連看', fill: '填空', tone: '聲調填空', write: '寫寫看', learn: '學寫字', speak: '唸唸看', chart: '注音表', spell: '拼拼看', friend: '符號找朋友', count: '數一數', make: '做數量', compare: '比多少', pattern: '找規律', odd: '找不同', maze: '迷宮', letterpic: '認字母', letterhear: '聽字母', wordspell: '拼單字' }
 
 export function renderPanel (root, opts) {
   if (opts.profile && opts.profile.adult) return renderTeacherPanel(root, opts)

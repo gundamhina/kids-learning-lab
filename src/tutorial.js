@@ -142,6 +142,41 @@ const SCENES = {
     ${ripple('tut-fish-r', 250, 262)}${sparks('tut-fish-s', 250, 262)}
     ${hand('tut-fish-hand')}`,
 
+  // 認字母：看上面的字母，點開頭是這個字母的圖（點擊動畫在 250,262）
+  letterpic: `
+    <rect x="250" y="20" width="140" height="100" rx="18" fill="#FFFDF7" stroke="${WOOD}" stroke-width="6"/>
+    <text x="320" y="72" font-size="64" font-family="Arial, sans-serif" font-weight="900" fill="${INK}" text-anchor="middle" dominant-baseline="central">Aa</text>
+    <g class="tut-fish-b1"><rect x="200" y="212" width="100" height="100" rx="18" fill="#FFFDF7" stroke="${WOOD}" stroke-width="5"/>
+    <text x="250" y="264" font-size="62" text-anchor="middle" dominant-baseline="central">🍎</text></g>
+    <rect x="370" y="212" width="100" height="100" rx="18" fill="#FFFDF7" stroke="${WOOD}" stroke-width="5"/>
+    <text x="420" y="264" font-size="62" text-anchor="middle" dominant-baseline="central">🐶</text>
+    ${ripple('tut-fish-r', 250, 262)}${sparks('tut-fish-s', 250, 262)}
+    ${hand('tut-fish-hand')}`,
+
+  // 聽字母：先聽，點聽到的字母（點擊動畫在 250,262）
+  letterhear: `
+    ${SPEAKER}
+    <g class="tut-fish-b1"><rect x="200" y="212" width="100" height="100" rx="18" fill="#FFFDF7" stroke="${WOOD}" stroke-width="5"/>
+    <text x="250" y="264" font-size="64" font-family="Arial, sans-serif" font-weight="900" fill="${INK}" text-anchor="middle" dominant-baseline="central">B</text></g>
+    <rect x="370" y="212" width="100" height="100" rx="18" fill="#FFFDF7" stroke="${WOOD}" stroke-width="5"/>
+    <text x="420" y="264" font-size="64" font-family="Arial, sans-serif" font-weight="900" fill="${INK}" text-anchor="middle" dominant-baseline="central">D</text>
+    ${ripple('tut-fish-r', 250, 262)}${sparks('tut-fish-s', 250, 262)}
+    ${hand('tut-fish-hand')}`,
+
+  // 拼單字：把字母拖進下一格（跟填空同一套拖曳動畫，空格在 371,132）
+  wordspell: `
+    <text x="110" y="120" font-size="80" text-anchor="middle" dominant-baseline="central">🐱</text>
+    <rect x="200" y="80" width="300" height="110" rx="20" fill="#FFFDF7" stroke="${WOOD}" stroke-width="7"/>
+    <text x="250" y="132" font-size="60" font-family="Arial, sans-serif" font-weight="900" fill="${INK}" text-anchor="middle" dominant-baseline="central">C</text>
+    <text x="300" y="132" font-size="60" font-family="Arial, sans-serif" font-weight="900" fill="${INK}" text-anchor="middle" dominant-baseline="central">A</text>
+    <rect class="tut-fill-blank" x="336" y="92" width="70" height="80" rx="14" fill="none" stroke="#E0955B" stroke-width="5" stroke-dasharray="10 8"/>
+    <g class="tut-fill-tile"><rect x="285" y="262" width="80" height="80" rx="16" fill="#FFF3B0" stroke="#F6F3E6" stroke-width="5"/>
+    <text x="325" y="304" font-size="56" font-family="Arial, sans-serif" font-weight="900" fill="${INK}" text-anchor="middle" dominant-baseline="central">T</text></g>
+    <rect x="435" y="262" width="80" height="80" rx="16" fill="#FFF3B0" stroke="#F6F3E6" stroke-width="5"/>
+    <text x="475" y="304" font-size="56" font-family="Arial, sans-serif" font-weight="900" fill="${INK}" text-anchor="middle" dominant-baseline="central">D</text>
+    ${sparks('tut-fill-s', 371, 132)}
+    ${hand('tut-fill-hand')}`,
+
   // 從詞拉一條線到圖
   match: `
     <rect x="60" y="148" width="190" height="110" rx="20" fill="#FFFDF7" stroke="${WOOD}" stroke-width="6"/>

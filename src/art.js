@@ -523,6 +523,47 @@ export function cardArt (kind) {
   <text x="180" y="168" text-anchor="middle" font-size="32">\u{1F9B4}</text>
 </svg>`
   }
+  if (kind === 'letterpic') {
+    return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="400" fill="#F3E4C2"/>
+  <rect x="70" y="40" width="160" height="130" rx="22" fill="#FFFDF7" stroke="#B08A63" stroke-width="6"/>
+  <text x="150" y="135" text-anchor="middle" font-size="90" font-weight="900" fill="#2B3A4A" font-family="Arial, sans-serif">Aa</text>
+  <rect x="20" y="250" width="78" height="78" rx="16" fill="#FFFDF7" stroke="#B08A63" stroke-width="5"/>
+  <rect x="111" y="250" width="78" height="78" rx="16" fill="#FFF3B0" stroke="#E0955B" stroke-width="6"/>
+  <rect x="202" y="250" width="78" height="78" rx="16" fill="#FFFDF7" stroke="#B08A63" stroke-width="5"/>
+  <text x="59" y="305" text-anchor="middle" font-size="46">\u{1F436}</text>
+  <text x="150" y="305" text-anchor="middle" font-size="46">\u{1F34E}</text>
+  <text x="241" y="305" text-anchor="middle" font-size="46">\u{1F41F}</text>
+</svg>`
+  }
+  if (kind === 'letterhear') {
+    return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="400" fill="#F3E4C2"/>
+  <path d="M96 110 h26 l34 -28 v92 l-34 -28 h-26 z" fill="#E0955B"/>
+  <g fill="none" stroke="#E0955B" stroke-width="7" stroke-linecap="round"><path d="M176 108 q14 20 0 40"/><path d="M196 92 q28 36 0 72"/></g>
+  <rect x="20" y="250" width="78" height="78" rx="16" fill="#FFFDF7" stroke="#B08A63" stroke-width="5"/>
+  <rect x="111" y="250" width="78" height="78" rx="16" fill="#FFF3B0" stroke="#E0955B" stroke-width="6"/>
+  <rect x="202" y="250" width="78" height="78" rx="16" fill="#FFFDF7" stroke="#B08A63" stroke-width="5"/>
+  <text x="59" y="308" text-anchor="middle" font-size="50" font-weight="900" fill="#2B3A4A" font-family="Arial, sans-serif">D</text>
+  <text x="150" y="308" text-anchor="middle" font-size="50" font-weight="900" fill="#2B3A4A" font-family="Arial, sans-serif">B</text>
+  <text x="241" y="308" text-anchor="middle" font-size="50" font-weight="900" fill="#2B3A4A" font-family="Arial, sans-serif">P</text>
+</svg>`
+  }
+  if (kind === 'wordspell') {
+    return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="400" fill="#F3E4C2"/>
+  <text x="150" y="120" text-anchor="middle" font-size="80">\u{1F431}</text>
+  <rect x="24" y="160" width="252" height="90" rx="18" fill="#FFFDF7" stroke="#B08A63" stroke-width="6"/>
+  <text x="70" y="225" text-anchor="middle" font-size="54" font-weight="900" fill="#2B3A4A" font-family="Arial, sans-serif">C</text>
+  <text x="150" y="225" text-anchor="middle" font-size="54" font-weight="900" fill="#2B3A4A" font-family="Arial, sans-serif">A</text>
+  <rect x="200" y="176" width="56" height="58" rx="11" fill="rgba(224,149,91,0.15)" stroke="#E0955B" stroke-width="5" stroke-dasharray="9 7"/>
+  <rect x="60" y="290" width="72" height="72" rx="14" fill="#FFFDF7" stroke="#B08A63" stroke-width="5"/>
+  <rect x="170" y="290" width="72" height="72" rx="14" fill="#FFF3B0" stroke="#E0955B" stroke-width="6"/>
+  <text x="96" y="342" text-anchor="middle" font-size="44" font-weight="900" fill="#2B3A4A" font-family="Arial, sans-serif">D</text>
+  <text x="206" y="342" text-anchor="middle" font-size="44" font-weight="900" fill="#2B3A4A" font-family="Arial, sans-serif">T</text>
+  <path d="M220 284 q20 -20 8 -44" fill="none" stroke="#E0955B" stroke-width="5" stroke-dasharray="6 6"/>
+</svg>`
+  }
   if (kind === 'tone') {
     return `<svg viewBox="0 0 300 400" width="300" height="400" xmlns="http://www.w3.org/2000/svg">
   <rect width="300" height="400" fill="#F3E4C2"/>

@@ -4,7 +4,8 @@
 import { dogSvg, bgHtml, symbolMarkup, wordPicMarkup } from './art.js'
 import { STAGE, mountBgs } from './ui.js'
 
-export function createFriend (root, { color = 0 } = {}) {
+// symbolHtml、picHtml 可以換掉：英文的「認字母」「聽發音」也用這個畫面（大字母配圖、喇叭配字母卡）
+export function createFriend (root, { color = 0, symbolHtml = symbolMarkup, picHtml = wordPicMarkup } = {}) {
   root.innerHTML = bgHtml('room') + '<div class="frame">' +
     '<div class="dog-wrap friend-dog">' + dogSvg(color) + '</div>' +
     '<div class="sign friend-sign"><div class="sign-board"><span class="friend-symbol"></span></div><div class="sign-post"></div></div>' +
@@ -36,8 +37,8 @@ export function createFriend (root, { color = 0 } = {}) {
     answer = ans
     locked = true
     signEl.classList.remove('glow')
-    symbolEl.innerHTML = symbolMarkup(symbol)
-    cardsEl.innerHTML = options.map(w => `<button class="fcard" data-word="${w}" aria-label="${w}">${wordPicMarkup(w)}</button>`).join('')
+    symbolEl.innerHTML = symbolHtml(symbol)
+    cardsEl.innerHTML = options.map(w => `<button class="fcard" data-word="${w}" aria-label="${w}">${picHtml(w)}</button>`).join('')
     layout()
   }
   const cardOf = w => cardsEl.querySelector(`.fcard[data-word="${w}"]`)

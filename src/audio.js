@@ -171,6 +171,28 @@ export function createAudio (getSettings) {
     await speakTts(text)
   }
 
+  // 唸英文（字母、單字）：挑英文的聲音，沒有就交給瀏覽器
+  function sayEnglish (text, { onStart } = {}) {
+    stop()
+    return new Promise(resolve => {
+      if (!('speechSynthesis' in window)) { if (onStart) onStart(); return resolve() }
+      const u = new SpeechSynthesisUtterance(text)
+      u.lang = 'en-US'
+      u.rate = 0.85
+      u.volume = vol('voiceVol')
+      const all = window.speechSynthesis.getVoices()
+      const v = all.find(x => /^en[-_]US/i.test(x.lang)) || all.find(x => /^en/i.test(x.lang))
+      if (v) u.voice = v
+      let done = false
+      const finish = () => { if (!done) { done = true; resolve() } }
+      u.onstart = () => { if (onStart) onStart() }
+      u.onend = finish
+      u.onerror = finish
+      setTimeout(() => { if (onStart) onStart(); finish() }, 3000)
+      window.speechSynthesis.speak(u)
+    })
+  }
+
   // 唸一句話（數學題的「有幾個？」這類），不找錄音檔，直接語音合成
   async function sayText (text, { onStart } = {}) {
     stop()
@@ -338,5 +360,5 @@ export function createAudio (getSettings) {
   }
   function ready () { return !!ctx }
 
-  return { unlock, ready, say, sayText, stop, sourceOf, setMusicVolume, ding, wrong, splash, crunch, flip, cheer, pop, tick, combo, chest, fanfare, startMusic, stopMusic, listVoices: () => { refreshVoices(); return voices } }
+  return { unlock, ready, say, sayText, sayEnglish, stop, sourceOf, setMusicVolume, ding, wrong, splash, crunch, flip, cheer, pop, tick, combo, chest, fanfare, startMusic, stopMusic, listVoices: () => { refreshVoices(); return voices } }
 }

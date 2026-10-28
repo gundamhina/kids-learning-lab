@@ -17,9 +17,11 @@ import { createFriend } from './friend.js'
 import { createCount, createMake, createCompare } from './mathgames.js'
 import { createPattern, createOdd, createMaze } from './braingames.js'
 import { patternQuestion, oddQuestion, mazeLevel } from './brainq.js'
+import { LETTER_GROUPS, SPELL_GROUPS, ENGLISH_ICON, letterOptions, letterPictureQuestion, wordTiles } from './english.js'
 import { countViewOf, countOptions, makePoolSize, compareQuestion, scatter, COUNT_ICONS } from './mathq.js'
 import { renderShop } from './shop.js'
-import { setOutfit, boneSvg, ownedMates, bgHtml, UX_ICONS } from './art.js'
+import { setOutfit, boneSvg, ownedMates, bgHtml, UX_ICONS, twemojiName } from './art.js'
+const ENG_SPEAKER = '<svg viewBox="0 0 24 24" width="150" height="150" fill="#E0955B"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="#E0955B" stroke-width="2" fill="none" stroke-linecap="round"/></svg>'
 import { burstAt, flyBones, bump, buzz } from './fx.js'
 import { showTutorial, hasTutorial } from './tutorial.js'
 import { WORD_ICON, coreOf } from './data.js'
@@ -31,7 +33,7 @@ const SETTINGS_KEY = 'zhuyin-rescue-settings'
 const MEMORY_PAIRS = 5
 // 每個玩法練哪一軌：聽（釣魚、打地鼠）、讀（唸給狗狗聽）、寫（寫給狗狗看）、詞（連連看、填空）、調（聲調填空）、拼（拼拼看）
 // 翻牌只借「聽」那一軌的出題池挑符號，不寫任何紀錄進去
-const TRACK_OF = { fishing: 'listen', whack: 'listen', memory: 'listen', speak: 'read', write: 'write', match: 'word', fill: 'word', tone: 'tone', learn: 'write', spell: 'spell', friend: 'friend', count: 'count', make: 'count', compare: 'compare', pattern: 'pattern', odd: 'odd', maze: 'maze' }
+const TRACK_OF = { fishing: 'listen', whack: 'listen', memory: 'listen', speak: 'read', write: 'write', match: 'word', fill: 'word', tone: 'tone', learn: 'write', spell: 'spell', friend: 'friend', count: 'count', make: 'count', compare: 'compare', pattern: 'pattern', odd: 'odd', maze: 'maze', letterpic: 'letter', letterhear: 'letter', wordspell: 'eword' }
 // 純練習的玩法：不記進度、沒有玩完的骨頭、不算今天的腳印
 const PRACTICE_KINDS = ['memory', 'learn']
 const LEARN_SYMBOLS = 3 // 學寫字一局教幾個符號
@@ -156,6 +158,8 @@ function main () {
     if (t === 'count') return odd ? 'make' : 'count'
     if (t === 'compare') return 'compare'
     if (t === 'pattern' || t === 'odd' || t === 'maze') return t
+    if (t === 'letter') return odd ? 'letterhear' : 'letterpic'
+    if (t === 'eword') return 'wordspell'
     if (t === 'read') return canSpeak() ? 'speak' : 'match'
     return 'write'
   }
@@ -429,6 +433,7 @@ function main () {
 
   function startGame (which) {
     destroyGame()
+    sayTargetFn = null
     bonesEl.hidden = isTeacher() || which === 'chart' // 老師帳號沒有骨頭；注音表只是看
     gameEl.querySelector('#btn-help').classList.toggle('hidden', !hasTutorial(which))
     kind = which
@@ -468,6 +473,9 @@ function main () {
     if (which === 'pattern') return runPattern()
     if (which === 'odd') return runOdd()
     if (which === 'maze') return runMaze()
+    if (which === 'letterpic') return runLetterPic()
+    if (which === 'letterhear') return runLetterHear()
+    if (which === 'wordspell') return runWordSpell()
     runQuestions(which)
   }
 
@@ -556,6 +564,9 @@ function main () {
   let idleTimer = null
 
   function clearIdle () { clearTimeout(idleTimer); idleTimer = null }
+  // 唸題目：預設照注音（官方錄音、代表字）；英文的玩法換成英文語音
+  let sayTargetFn = null
+  const sayTarget = (t, opts) => sayTargetFn ? sayTargetFn(t, opts) : audio.say(t, opts)
 
   // 發呆太久：重唸一次、正確的晃一下。之後每隔同樣秒數再來一次。
   function armIdle (q, myIndex, myGame) {
@@ -563,7 +574,7 @@ function main () {
     if (!q.idleHint) return
     idleTimer = setTimeout(async () => {
       if (index !== myIndex || game !== myGame || busy) return
-      await audio.say(q.target)
+      await sayTarget(q.target)
       if (index !== myIndex || game !== myGame) return
       game.hint()
       armIdle(q, myIndex, myGame)
@@ -613,7 +624,7 @@ function main () {
   replayBtn.addEventListener('pointerdown', () => {
     if (kind === 'memory' || kind === 'learn' || kind === 'speak' || kind === 'match' || kind === 'fill' || kind === 'tone' || !round[index]) return
     if (busy) return
-    audio.say(round[index].target)
+    sayTarget(round[index].target)
   })
 
   async function onPick (symbol, el = null) {
@@ -1224,9 +1235,20 @@ function main () {
   // ---- 拼拼看：聽一個音，照順序（由上往下）把符號拖進空格拼出來 ----
   // 放對一塊唸那個符號，全部拼好唸整個音對答案。中間放錯一塊這題就算錯（只記一次），可以繼續拼完。
   function runSpell () {
-    game = createSpell(playArea, { color: myColor() })
+    spellFlow({
+      game: createSpell(playArea, { color: myColor() }),
+      round: buildRound(syllablesOnlyState(currentView()), Math.random, roundSize()),
+      piecesOf: q => [...coreOf(q.target)],
+      tilesOf: q => spellTiles(q.target, effectiveTier(currentView()), Math.random),
+      sayPiece: p => audio.say(p),
+    })
+  }
+  // 拼的共用流程（注音拼拼看、英文拼單字）：照順序把磁磚放進格子；放對一塊唸那一塊，全部拼好唸整個。
+  // 中間放錯一次這題就算錯（只記一次）；三級提示：錯 1 次重唸整個、2 次起下一塊一直發亮、3 次起再示範那一塊
+  function spellFlow ({ game: g, round: r, piecesOf, tilesOf, sayPiece }) {
+    game = g
     replayBtn.classList.remove('hidden')
-    round = buildRound(syllablesOnlyState(currentView()), Math.random, roundSize())
+    round = r
     index = 0
     starTotal = round.length
     setStars()
@@ -1236,13 +1258,13 @@ function main () {
       const q = round[index]
       const myIndex = index
       const myGame = game
-      pieces = [...coreOf(q.target)]
+      pieces = piecesOf(q)
       placed = 0
       firstAttempt = true
       wrongs = 0
       clearIdle()
       busy = true
-      game.start(q, { pieces, tiles: spellTiles(q.target, effectiveTier(currentView()), Math.random) })
+      game.start(q, { pieces, tiles: tilesOf(q) })
       await wait(350)
       let opened = false
       const open = () => {
@@ -1251,7 +1273,7 @@ function main () {
         game.unlock()
         busy = false
       }
-      await audio.say(q.target, { onStart: open })
+      await sayTarget(q.target, { onStart: open })
       open()
       if (index === myIndex && game === myGame) armIdle(q, myIndex, myGame)
     }
@@ -1263,7 +1285,7 @@ function main () {
         placed++
         game.fill(sym)
         if (placed < pieces.length) {
-          audio.say(sym)
+          sayPiece(sym)
           if (wrongs >= 2) game.mark() // 已經在標答案了：換下一塊亮
           armIdle(q, index, myGame)
           return
@@ -1278,7 +1300,7 @@ function main () {
         rewardCorrect(firstAttempt, playArea.querySelector('.spell-sign'), bones)
         await game.celebrate()
         if (game !== myGame) return
-        await audio.say(q.target) // 對答案
+        await sayTarget(q.target) // 對答案
         if (game !== myGame) return
         index++
         if (index >= round.length) return finishRound()
@@ -1286,7 +1308,6 @@ function main () {
         return
       }
       if (firstAttempt) { commit({ target: q.target, ok: false, picked: null, ms: 0, drill: q.drill }); firstAttempt = false }
-      // 三級提示：錯第一次重唸整個音，第二次起下一塊該放的一直發亮，第三次起再示範那一塊的音
       const step = wrongStep()
       rewardWrong()
       audio.wrong()
@@ -1294,13 +1315,110 @@ function main () {
       game.sad()
       if (step >= 2) game.mark()
       const need = pieces[placed]
-      setTimeout(() => {
+      setTimeout(async () => {
         if (game !== myGame || busy) return
-        if (step >= 3) sayDemo(need, myGame)
-        else audio.say(q.target)
+        if (step >= 3) { await audio.sayText('是這一個'); if (game === myGame) sayPiece(need) } else sayTarget(q.target)
       }, 450)
     })
     askSpell()
+  }
+
+  // ---- 英文：認字母、聽發音（字軌，題目是大寫字母）、拼單字（拼英軌，題目是單字） ----
+  const engView = groups => ({ ...currentView(), groups, rangeGroups: null, unlockedUpTo: null, known: [] })
+  const engImg = w => `<img class="emoji emoji-img" src="img/emoji/${twemojiName(ENGLISH_ICON[w])}.svg" alt="">`
+  const engLetter = l => `<span class="eng-big">${l}<small>${l.toLowerCase()}</small></span>`
+  // 看大字母（狗狗唸字母），從三張圖選開頭是這個字母的；答對唸「A, apple」
+  function runLetterPic () {
+    sayTargetFn = (t, opts) => audio.sayEnglish(t, opts)
+    game = createFriend(playArea, { color: myColor(), symbolHtml: engLetter, picHtml: engImg })
+    replayBtn.classList.remove('hidden')
+    round = buildRound(engView(LETTER_GROUPS), Math.random, roundSize())
+    engChoice(q => letterPictureQuestion(q.target, effectiveTier(currentView()), Math.random), (q, w) => audio.sayEnglish(q.target + ', ' + w))
+  }
+  // 聽一個字母，從幾張字母卡選
+  function runLetterHear () {
+    sayTargetFn = (t, opts) => audio.sayEnglish(t, opts)
+    game = createFriend(playArea, { color: myColor(), symbolHtml: () => ENG_SPEAKER, picHtml: l => `<span class="eng-card">${l}<small>${l.toLowerCase()}</small></span>` })
+    replayBtn.classList.remove('hidden')
+    round = buildRound(engView(LETTER_GROUPS), Math.random, roundSize())
+    engChoice(q => ({ answer: q.target, options: letterOptions(q.target, effectiveTier(currentView()), Math.random) }), q => audio.sayEnglish(q.target))
+  }
+  // 認字母、聽發音共用：唸題目、選一張；三級提示照「符號找朋友」
+  function engChoice (makeQ, onRight) {
+    index = 0
+    starTotal = round.length
+    setStars()
+    let answer = null
+    const ask = async () => {
+      const q = round[index]
+      const myIndex = index
+      const myGame = game
+      const eq = makeQ(q)
+      answer = eq.answer
+      firstAttempt = true
+      wrongs = 0
+      clearIdle()
+      busy = true
+      game.start(q.target, eq.options, answer)
+      await wait(350)
+      let opened = false
+      const open = () => {
+        if (opened || index !== myIndex || game !== myGame) return
+        opened = true
+        game.unlock()
+        askedAt = Date.now()
+        busy = false
+      }
+      await audio.sayEnglish(q.target, { onStart: open })
+      open()
+      if (index === myIndex && game === myGame) armIdle(q, myIndex, myGame)
+    }
+    game.onAnswer(async (word, el) => {
+      if (busy) return
+      const q = round[index]
+      const myGame = game
+      const ms = Date.now() - askedAt
+      if (word === answer) {
+        busy = true
+        clearIdle()
+        game.lock()
+        const bones = questionReward(currentView(), q.target, firstAttempt)
+        if (firstAttempt) commit({ target: q.target, ok: true, picked: q.target, ms, drill: q.drill })
+        rewardCorrect(firstAttempt, el, bones)
+        audio.ding()
+        await game.celebrate(word)
+        if (game !== myGame) return
+        await onRight(q, word)
+        if (game !== myGame) return
+        index++
+        if (index >= round.length) return finishRound()
+        ask()
+        return
+      }
+      if (firstAttempt) { commit({ target: q.target, ok: false, picked: null, ms, drill: q.drill }); firstAttempt = false }
+      const step = wrongStep()
+      rewardWrong()
+      audio.wrong()
+      game.shake(word)
+      game.sad()
+      if (step >= 2) game.mark()
+      setTimeout(async () => {
+        if (game !== myGame || busy) return
+        if (step >= 3) { await audio.sayText('是這一個'); if (game === myGame) audio.sayEnglish(answer) } else audio.sayEnglish(q.target)
+      }, 450)
+    })
+    ask()
+  }
+  // 拼單字：看圖聽單字，把字母照順序拖進橫排的格子
+  function runWordSpell () {
+    sayTargetFn = (t, opts) => audio.sayEnglish(t, opts)
+    spellFlow({
+      game: createSpell(playArea, { color: myColor(), horizontal: true, glyph: l => `<b class="eng-tile">${l}</b>`, whole: w => `<b class="eng-whole">${w}</b>`, picHtml: engImg }),
+      round: buildRound(engView(SPELL_GROUPS), Math.random, roundSize()),
+      piecesOf: q => q.target.toUpperCase().split(''),
+      tilesOf: q => wordTiles(q.target, effectiveTier(currentView()), Math.random),
+      sayPiece: l => audio.sayEnglish(l),
+    })
   }
 
   // ---- 翻牌：純遊玩。不寫進熟練度、混淆對、升降級，骨頭也只有配對那一點，沒有過關獎勵 ----

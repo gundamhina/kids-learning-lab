@@ -1231,3 +1231,26 @@ html, body { overscroll-behavior: none; } /* 家長區捲到頂再往下拉，An
 .ov-meter { height: 14px; border-radius: 7px; background: #E8EEF5; overflow: hidden; }
 .ov-meter i { display: block; height: 100%; background: #E0955B; }
 #btn-weak.on { background: #FFF3B0; }
+
+/* ================= 英文 ================= */
+.eng-big { font-family: "Arial Rounded MT Bold", "Arial", sans-serif; font-size: 170px; font-weight: 900; color: #2B3A4A; line-height: 1; display: inline-flex; align-items: baseline; gap: 8px; }
+.eng-big small { font-size: 120px; color: #8A6A4C; }
+.friend-sign .sign-board span.friend-symbol .eng-big { font-size: 150px; }
+.friend-sign .sign-board span.friend-symbol .eng-big small { font-size: 110px; }
+.eng-card { font-family: "Arial Rounded MT Bold", "Arial", sans-serif; font-size: 110px; font-weight: 900; color: #2B3A4A; line-height: 1; pointer-events: none; }
+.eng-card small { font-size: 80px; color: #8A6A4C; margin-left: 4px; }
+.eng-tile { font-family: "Arial Rounded MT Bold", "Arial", sans-serif; font-size: 90px; font-weight: 900; color: #2B3A4A; }
+.eng-whole { font-family: "Arial Rounded MT Bold", "Arial", sans-serif; font-size: 110px; font-weight: 900; color: #2B3A4A; letter-spacing: 6px; }
+/* 拼單字：格子橫排、牌子放上面中間，左邊一張圖 */
+.spell-h .spell-sign { left: 330px; top: 70px; width: auto; }
+.spell-h .spell-sign .sign-board { width: auto; min-width: 400px; min-height: 200px; padding: 22px 30px; }
+.spell-h .spell-slots { flex-direction: row; }
+.spell-h .spell-sign .sign-post { display: none; }
+.spell-pic { position: absolute; left: 60px; top: 80px; width: 220px; height: 220px; border-radius: 34px; background: var(--paper) var(--paper-tex); border: 5px solid var(--wood); box-shadow: 0 8px 0 var(--wood); padding: 30px; }
+.spell-pic .emoji-img { width: 100%; height: 100%; }
+.spell-h .spell-dog { display: none; }
+#stage.portrait .spell-h .spell-sign { left: 40px; top: 400px; }
+#stage.portrait .spell-pic { left: 290px; top: 140px; }
+.spell-h .spell-sign { left: 50%; translate: -50% 0; }
+#stage.portrait .spell-h .spell-sign { left: 50%; }
+#stage.portrait .spell-pic { left: 290px; top: 130px; }
