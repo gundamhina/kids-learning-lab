@@ -1049,6 +1049,8 @@ html, body { overscroll-behavior: none; } /* 家長區捲到頂再往下拉，An
 .cat-head { width: 64px; height: 64px; }
 .cat-head svg { width: 36px; height: 36px; }
 .cat-cards { gap: 10px; }
+/* 直版寬 800 排不下六張（動腦），一排最多四張 */
+#stage.portrait .cat-cards { flex-wrap: wrap; max-width: 510px; }
 
 /* 學寫字寫錯一筆：方向反了，起點圓點跳得更大；寫成別的筆，該寫的這一筆亮起來 */
 .fault-direction .lesson-dot { animation: lessonDotBig .45s ease-in-out 4; }
@@ -1069,6 +1071,9 @@ html, body { overscroll-behavior: none; } /* 家長區捲到頂再往下拉，An
 .subject-chip { padding: 6px 20px; border-radius: 30px; background: var(--paper) var(--paper-tex); border: 4px solid var(--cat); font-size: 30px; font-weight: 900; color: #2B3A4A; }
 .cards.cat-grid.with-bar { top: 205px; }
 .cards.cat-menu.with-bar { top: 210px; }
+/* 直版的每日條在 top 118，返回列要排在它下面 */
+#stage.portrait .subject-bar { top: 222px; }
+#stage.portrait .cards.with-bar { top: 316px; }
 #stage.portrait .cards.subject-menu { flex-direction: column; gap: 30px; }
 #stage.portrait .subject-tile { width: 420px; height: 200px; flex-direction: row; gap: 30px; }
 
