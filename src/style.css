@@ -1609,3 +1609,11 @@ html, body { overscroll-behavior: none; } /* 家長區捲到頂再往下拉，An
 #stage.portrait .pnav { padding: 8px 16px; font-size: 18px; }
 #stage.portrait #screen-panel .learn-set .learn-label { width: 100%; }
 #stage.portrait #screen-panel .learn-set .panel-hint-inline { padding-left: 0; }
+/* 進度頁：科目、軌的選擇，數學英文動腦的題目格 */
+#screen-panel .track-tab small { margin-left: 8px; font-size: 14px; font-weight: 400; opacity: .75; }
+#screen-panel .subj-tab { font-weight: 900; }
+.pitems { width: 100%; display: flex; flex-wrap: wrap; gap: 10px; }
+.pitem { min-width: 110px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 12px; border-radius: 14px; background: #fff; border: 2px solid var(--p-line); border-bottom-width: 6px; }
+.pitem b { font-size: 26px; color: var(--p-text); }
+.pitem small { font-size: 13px; color: var(--p-muted); }
+.pitem.red { border-bottom-color: #E07A5F; } .pitem.yellow { border-bottom-color: #E8C86A; } .pitem.green { border-bottom-color: #6B9E6B; }

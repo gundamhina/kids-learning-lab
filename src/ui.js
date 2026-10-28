@@ -3,6 +3,8 @@
 import { GROUPS, REP_CHAR, GROUP_NAMES, WORD_TEXT } from './data.js'
 import { stars, activePool, effectiveTier, unlockedCount, lifetimeStats, dailyStats, TIERS, ZHUYIN_TRACKS, TRACK_NAMES, overviewStats, weakestItems, TRACKS } from './scheduler.js'
 import { dogSvg, confettiHtml, DOG_COLORS, bgHtml, cardArt, boneSvg, SHOP_ICONS, UX_ICONS, DOG_NAMES } from './art.js'
+import { COUNT_GROUPS } from './mathq.js'
+import { LETTER_GROUPS, SPELL_GROUPS } from './english.js'
 
 
 // 舞台會跟著螢幕比例變形，所以不留邊：
@@ -704,7 +706,27 @@ function renderTeacherPanel (root, { profile, profiles, state, settings, voices,
 }
 
 // 家長區分頁；記住上次看哪一頁（改設定會整頁重畫，要停在同一頁）
-const FAMILY_SECTIONS = [['overview', '總覽'], ['learn', '學習設定'], ['zhuyin', '注音進度'], ['sound', '聲音'], ['family', '使用者與資料']]
+const FAMILY_SECTIONS = [['overview', '總覽'], ['learn', '學習設定'], ['progress', '進度'], ['sound', '聲音'], ['family', '使用者與資料']]
+// 進度頁：先選科目，再選科目裡的一軌
+const PROGRESS_SUBJECTS = [['zhuyin', '注音', ZHUYIN_TRACKS], ['math', '數學', ['count', 'compare']], ['english', '英文', ['letter', 'eword']], ['brain', '動腦', ['pattern', 'odd', 'maze', 'spot']]]
+// 數學、英文、動腦一軌裡的題目：照順序列出來，每個一格星星
+function trackItems (track, state) {
+  if (track === 'count') return COUNT_GROUPS.flat()
+  if (track === 'compare') return ['more', 'less']
+  if (track === 'letter') return LETTER_GROUPS.flat()
+  if (track === 'eword') return SPELL_GROUPS.flat()
+  return Object.keys(state.mastery || {})
+}
+const ITEM_LABELS = { more: '哪邊多', less: '哪邊少', fill: '補空格', repeat: '找重複', translate: '換一組圖', icon: '換一種圖', color: '換顏色', flip: '左右顛倒', turn: '轉方向', small: '變小' }
+function itemTilesHtml (track, state) {
+  const items = trackItems(track, state)
+  if (!items.length) return '<p class="panel-hint">這一軌還沒有紀錄。</p>'
+  return `<div class="pitems">${items.map(it => {
+    const n = stars(state, it)
+    const hist = (state.mastery[it] && state.mastery[it].history) || []
+    return `<div class="pitem ${starColor(n)}"><b>${ITEM_LABELS[it] || it}</b><span class="ptile-stars">${'★'.repeat(n)}${'☆'.repeat(5 - n)}</span><small>${hist.length ? '近 ' + hist.filter(h => h.ok).length + '/' + hist.length : '沒練過'}</small></div>`
+  }).join('')}</div>`
+}
 let panelSection = 'overview'
 function renderFamilyPanel (root, { profile, profiles, state, full = null, track = 'listen', page = null, onTrack, onPage, settings, voices, onKnownChange, onSettings, onVolumeTest, onStateChange, onExport, onImport, onResetProgress, onRemoveProfile, onClose, onSay, onCheck }) {
   // 沒指定頁：看詞軌、調軌就開詞那頁，其他軌開注音符號
@@ -753,7 +775,7 @@ function renderFamilyPanel (root, { profile, profiles, state, full = null, track
   const tierHtml = !profile ? '' : `
       <div class="panel-row panel-tier">
         <b>「${TRACK_NAMES[track]}」這一軌</b>
-        <div>目前出題階級：<b>${effectiveTier(state) + 1}</b> / 6（${tierLabel(TIERS[effectiveTier(state)])}）</div>
+        <div>目前出題階級：<b>${effectiveTier(state) + 1}</b> / 6${ZHUYIN_TRACKS.includes(track) ? '（' + tierLabel(TIERS[effectiveTier(state)]) + '）' : '（數字越大越難）'}${state.lockTier != null ? '，家長鎖住的' : ''}</div>
         <div>自動判定：第 <b>${state.tier + 1}</b> 階
           <button class="mini" id="tier-down" title="降一階" ${state.tier <= 0 ? 'disabled' : ''}>−</button>
           <button class="mini" id="tier-up" title="跳一階" ${state.tier >= TIERS.length - 1 ? 'disabled' : ''}>＋</button>
@@ -770,7 +792,8 @@ function renderFamilyPanel (root, { profile, profiles, state, full = null, track
       </div>`
   const difficultyHtml = !profile ? '' : `
       <div class="panel-row panel-difficulty">
-        <b>注音難度與範圍</b>
+        <b>難度與注音範圍</b>
+        <span class="panel-hint-inline">難度鎖在某一階時，注音、數學、英文、動腦每一軌都用這一階；選「自動」就各軌自己升降。範圍只管注音。</span>
         <label>難度
           <select id="sel-tier">
             <option value="" ${state.lockTier == null ? 'selected' : ''}>自動（連對升、連錯降）</option>
@@ -789,11 +812,13 @@ function renderFamilyPanel (root, { profile, profiles, state, full = null, track
           </span>
         </div>
       </div>`
+  const subject = PROGRESS_SUBJECTS.find(([, , ts]) => ts.includes(track)) || PROGRESS_SUBJECTS[0]
   const tracksHtml = !profile ? '' : `
       <div class="panel-row panel-tracks">
-        <b>看哪一軌</b>
-        <div class="chip-row">${ZHUYIN_TRACKS.map(t => `<button class="track-tab ${t === track ? 'on' : ''}" data-track="${t}">${TRACK_NAMES[t]}</button>`).join('')}</div>
-        <span class="panel-hint-inline">聽＝釣魚、打地鼠；讀＝唸唸看；寫＝寫寫看、學寫字；詞＝連連看、填空；調＝聲調填空；拼＝拼拼看；認＝符號找朋友。數學、英文、動腦的紀錄在「總覽」。翻牌、學寫字是純練習，不記進度。星星、混淆、階級、解鎖各軌分開算；「學習設定」裡的難度與範圍各軌共用。</span>
+        <b>看哪一科、哪一軌</b>
+        <div class="chip-row">${PROGRESS_SUBJECTS.map(([k, name, ts]) => `<button class="track-tab subj-tab ${k === subject[0] ? 'on' : ''}" data-track="${ts[0]}">${name}</button>`).join('')}</div>
+        <div class="chip-row">${subject[2].map(t => `<button class="track-tab ${t === track ? 'on' : ''}" data-track="${t}">${TRACK_NAMES[t]}<small>${TRACK_GAMES[t] || ''}</small></button>`).join('')}</div>
+        <span class="panel-hint-inline">每一軌的星星、混淆、階級、解鎖分開算，連對會自動升階、常錯會降階。翻牌、學寫字、寫數字、寫字母、著色是純練習，不記進度。「學習設定」裡鎖難度的話，所有科目都用那一階。</span>
       </div>`
   const avatar = profile ? `<span class="panel-who-dog">${dogSvg(profile.color)}</span>` : ''
 
@@ -808,8 +833,9 @@ function renderFamilyPanel (root, { profile, profiles, state, full = null, track
       <nav class="panel-nav">${sections.map(([k, label]) => `<button class="pnav ${k === panelSection ? 'on' : ''}" data-psec-btn="${k}">${label}</button>`).join('')}</nav>
       ${profile ? sec('overview', (full ? overviewHtml(full) : '') + statsHtml(state) + bonesHtml) : ''}
       ${profile ? sec('learn', learnSettingsHtml(state) + difficultyHtml) : ''}
-      ${profile ? sec('zhuyin', tracksHtml + tierHtml + weakHtml(state, track) +
-        `<div class="panel-row panel-progress">${groupsHtml}<p class="panel-hint">點符號可以試聽。「認得」勾起來的符號從 3 星起算並直接進入出題。每格右下方的字是語音合成實際唸的代表字，唸得怪可以改。</p></div>`) : ''}
+      ${profile ? sec('progress', tracksHtml + tierHtml + (subject[0] === 'brain' ? '' : weakHtml(state, track)) + (subject[0] === 'zhuyin'
+        ? `<div class="panel-row panel-progress">${groupsHtml}<p class="panel-hint">點符號可以試聽。「認得」勾起來的符號從 3 星起算並直接進入出題。每格右下方的字是語音合成實際唸的代表字，唸得怪可以改。</p></div>`
+        : `<div class="panel-row panel-progress"><b>${subject[1]}・${TRACK_NAMES[track]}的每一題</b>${itemTilesHtml(track, state)}</div>`)) : ''}
       ${sec('sound', volumeRowHtml(settings) + `
       <div class="panel-row panel-voice">
         <b>語音</b>
