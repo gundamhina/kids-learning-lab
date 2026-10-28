@@ -539,6 +539,7 @@ function statsHtml (state) {
   }).join('')
   return `
       <div class="panel-row panel-stats">
+        <b>練習量</b>
         <div class="stats-sum">累計 <b>${life.total}</b> 題，答對 <b>${life.correct}</b>（${pct}%）</div>
         <div class="dchart">
           <div class="dchart-title">最近 14 天每天練幾題　<span class="lg lg-ok"></span>答對　<span class="lg lg-bad"></span>答錯</div>
@@ -702,6 +703,9 @@ function renderTeacherPanel (root, { profile, profiles, state, settings, voices,
   })
 }
 
+// 家長區分頁；記住上次看哪一頁（改設定會整頁重畫，要停在同一頁）
+const FAMILY_SECTIONS = [['overview', '總覽'], ['learn', '學習設定'], ['zhuyin', '注音進度'], ['sound', '聲音'], ['family', '使用者與資料']]
+let panelSection = 'overview'
 function renderFamilyPanel (root, { profile, profiles, state, full = null, track = 'listen', page = null, onTrack, onPage, settings, voices, onKnownChange, onSettings, onVolumeTest, onStateChange, onExport, onImport, onResetProgress, onRemoveProfile, onClose, onSay, onCheck }) {
   // 沒指定頁：看詞軌、調軌就開詞那頁，其他軌開注音符號
   const curPage = page || (track === 'word' || track === 'tone' ? 'words' : 'symbols')
@@ -742,42 +746,31 @@ function renderFamilyPanel (root, { profile, profiles, state, full = null, track
   const voiceOptions = voices.map(v =>
     `<option value="${v.name}" ${settings.voiceName === v.name ? 'selected' : ''}>${v.name} (${v.lang})</option>`).join('')
 
-  root.innerHTML = `
-    <div class="panel">
-      <div class="panel-head">
-        <h2>大人面板　<small>${profile ? '目前：' + escapeHtml(profile.name) : '尚未選人'}</small></h2>
-        <button class="panel-close" id="panel-close">關閉</button>
-      </div>
-      ${volumeRowHtml(settings)}
-      <div class="panel-row panel-users">
-        <b>使用者</b>${usersHtml}
-      </div>
-      ${profile ? learnSettingsHtml(state) : ''}
-      ${profile && full ? overviewHtml(full) : ''}
-      ${profile ? `
-      <div class="panel-row panel-tracks">
-        <b>看哪一軌</b>
-        ${ZHUYIN_TRACKS.map(t => `<button class="track-tab ${t === track ? 'on' : ''}" data-track="${t}">${TRACK_NAMES[t]}</button>`).join('')}
-        <span class="panel-hint-inline">聽＝釣魚、打地鼠；讀＝唸唸看；寫＝寫寫看、學寫字；詞＝連連看、填空；調＝聲調填空；拼＝拼拼看；認＝符號找朋友。數學、動腦的紀錄看上面的學習統計。翻牌、學寫字是純練習，不記進度。星星、混淆、階級、解鎖各軌分開算，下面的設定各軌共用。</span>
-      </div>
-      <div class="panel-row">
-        <div>「${TRACK_NAMES[track]}」目前出題階級：<b>${effectiveTier(state) + 1}</b> / 6（${tierLabel(TIERS[effectiveTier(state)])}）</div>
+  // 分頁：每頁一疊卡片。全部畫出來、只顯示目前那頁（綁事件的程式找得到每個按鈕），換頁不用重畫
+  const sections = profile ? FAMILY_SECTIONS : FAMILY_SECTIONS.filter(([k]) => k === 'sound' || k === 'family')
+  if (!sections.some(([k]) => k === panelSection)) panelSection = sections[0][0]
+  const sec = (key, html) => `<section class="psec ${key === panelSection ? 'on' : ''}" data-psec="${key}">${html}</section>`
+  const tierHtml = !profile ? '' : `
+      <div class="panel-row panel-tier">
+        <b>「${TRACK_NAMES[track]}」這一軌</b>
+        <div>目前出題階級：<b>${effectiveTier(state) + 1}</b> / 6（${tierLabel(TIERS[effectiveTier(state)])}）</div>
         <div>自動判定：第 <b>${state.tier + 1}</b> 階
           <button class="mini" id="tier-down" title="降一階" ${state.tier <= 0 ? 'disabled' : ''}>−</button>
           <button class="mini" id="tier-up" title="跳一階" ${state.tier >= TIERS.length - 1 ? 'disabled' : ''}>＋</button>
           ，最近 10 題 ${state.recent.filter(Boolean).length}/${state.recent.length} 對</div>
         <div>混淆中：${confusions.length ? confusions.map(k => k.replace('|', '／')).join('、') : '沒有'}</div>
-      </div>
-      ${profile ? weakHtml(state, track) : ''}
-      ${profile ? statsHtml(state) : ''}
-      ${profile ? `
-      <div class="panel-row">
-        <b>骨頭</b> 現在 <b>${state.bones || 0}</b> 根（累計賺過 ${state.bonesTotal || 0}，買了 ${(state.owned || []).length} 件配件）
-        <button class="mini" id="bones-minus" title="扣 100 根">−100</button>
-        <button class="mini" id="bones-plus" title="送 100 根">＋100</button>
-        <span class="panel-hint-inline">照題目難度給：第一次就答對，階級 1–2 給 1 根、3–4 給 2 根、5–6 給 3 根；還不熟的符號多 1 根、已經很熟的（4 顆星以上）少 1 根，最少 1 根。錯了才答對：低階不給、其他 1 根。連 3 題、連 5 題另外多 1～4 根，玩完一局再送 1～3 根，也都照階級。翻牌是純遊玩：配對一對 1 根、沒有過關獎勵。</span>
-      </div>` : ''}
+      </div>`
+  const bonesHtml = !profile ? '' : `
+      <div class="panel-row panel-bones">
+        <b>骨頭</b>
+        <div class="bones-now"><span class="bone-ic">${boneSvg()}</span><strong>${state.bones || 0}</strong> 根<small>累計賺過 ${state.bonesTotal || 0}，買了 ${(state.owned || []).length} 件配件</small>
+          <button class="mini" id="bones-minus" title="扣 100 根">−100</button>
+          <button class="mini" id="bones-plus" title="送 100 根">＋100</button></div>
+        <span class="panel-hint-inline">照題目難度給：第一次就答對，階級 1–2 給 1 根、3–4 給 2 根、5–6 給 3 根；還不熟的符號多 1 根、已經很熟的（4 顆星以上）少 1 根，最少 1 根。錯了才答對：低階不給、其他 1 根。連 3 題、連 5 題另外多 1～4 根，玩完一局再送 1～3 根，也都照階級。翻牌是純遊玩：配對一對 1 根、沒有過關獎勵。對戰：贏了 10 根、輸了 5 根。</span>
+      </div>`
+  const difficultyHtml = !profile ? '' : `
       <div class="panel-row panel-difficulty">
+        <b>注音難度與範圍</b>
         <label>難度
           <select id="sel-tier">
             <option value="" ${state.lockTier == null ? 'selected' : ''}>自動（連對升、連錯降）</option>
@@ -795,24 +788,57 @@ function renderFamilyPanel (root, { profile, profiles, state, full = null, track
             ${GROUPS.map((g, i) => `<label><input type="checkbox" data-range="${i}" ${(state.rangeGroups || []).includes(i) ? 'checked' : ''}> ${i + 1}.${g.length > 8 ? groupName(i, g) : g.join('')}</label>`).join('')}
           </span>
         </div>
-      </div>` : ''}
-      <div class="panel-row">
-        <label>語音
-          <select id="sel-voice"><option value="">自動</option>${voiceOptions}</select>
-        </label>
+      </div>`
+  const tracksHtml = !profile ? '' : `
+      <div class="panel-row panel-tracks">
+        <b>看哪一軌</b>
+        <div class="chip-row">${ZHUYIN_TRACKS.map(t => `<button class="track-tab ${t === track ? 'on' : ''}" data-track="${t}">${TRACK_NAMES[t]}</button>`).join('')}</div>
+        <span class="panel-hint-inline">聽＝釣魚、打地鼠；讀＝唸唸看；寫＝寫寫看、學寫字；詞＝連連看、填空；調＝聲調填空；拼＝拼拼看；認＝符號找朋友。數學、英文、動腦的紀錄在「總覽」。翻牌、學寫字是純練習，不記進度。星星、混淆、階級、解鎖各軌分開算；「學習設定」裡的難度與範圍各軌共用。</span>
+      </div>`
+  const avatar = profile ? `<span class="panel-who-dog">${dogSvg(profile.color)}</span>` : ''
+
+  root.innerHTML = `
+    <div class="panel">
+      <div class="panel-head">
+        <h2>大人面板</h2>
+        <span class="panel-who">${avatar}${profile ? escapeHtml(profile.name) : '尚未選人'}</span>
+        <span id="panel-msg" class="panel-msg"></span>
+        <button class="panel-close" id="panel-close">關閉</button>
+      </div>
+      <nav class="panel-nav">${sections.map(([k, label]) => `<button class="pnav ${k === panelSection ? 'on' : ''}" data-psec-btn="${k}">${label}</button>`).join('')}</nav>
+      ${profile ? sec('overview', (full ? overviewHtml(full) : '') + statsHtml(state) + bonesHtml) : ''}
+      ${profile ? sec('learn', learnSettingsHtml(state) + difficultyHtml) : ''}
+      ${profile ? sec('zhuyin', tracksHtml + tierHtml + weakHtml(state, track) +
+        `<div class="panel-row panel-progress">${groupsHtml}<p class="panel-hint">點符號可以試聽。「認得」勾起來的符號從 3 星起算並直接進入出題。每格右下方的字是語音合成實際唸的代表字，唸得怪可以改。</p></div>`) : ''}
+      ${sec('sound', volumeRowHtml(settings) + `
+      <div class="panel-row panel-voice">
+        <b>語音</b>
+        <label>聲音 <select id="sel-voice"><option value="">自動</option>${voiceOptions}</select></label>
         <label>語速 <input type="range" id="rng-rate" min="0.5" max="1.2" step="0.05" value="${settings.rate || 0.8}"> <span id="rate-val">${settings.rate || 0.8}</span></label>
         <button id="btn-check">發音檢查${Object.keys(settings.audioIssues || {}).length ? '（' + Object.keys(settings.audioIssues).length + ' 個有問題）' : ''}</button>
-        ${profile ? `
+      </div>`)}
+      ${sec('family', `
+      <div class="panel-row panel-users">
+        <b>使用者</b>${usersHtml}
+      </div>
+      ${profile ? `
+      <div class="panel-row panel-data">
+        <b>${escapeHtml(profile.name)}的資料</b>
         <button id="btn-export">匯出進度</button>
         <label class="file-btn">匯入進度<input type="file" id="file-import" accept=".json"></label>
-        <button id="btn-reset" class="danger">清除練習紀錄（全部五軌）</button>` : ''}
-        <span id="panel-msg" class="panel-msg"></span>
-      </div>
-      <p class="panel-hint">資料來源：發音為教育部《國語注音符號手冊》錄音（CC BY 4.0）；讀音照教育部《國語辭典簡編本》；筆順為教育部《國字標準字體筆順學習網》（CC BY-NC-ND 3.0 臺灣）；詞的圖為 Twemoji（CC BY 4.0）。</p>
-      <p class="panel-hint">點符號可以試聽。「認得」勾起來的符號從 3 星起算並直接進入出題。每格右下方的字是語音合成實際唸的代表字，唸得怪可以改。</p>
-      ${profile ? groupsHtml : '<p class="panel-hint">先回選人畫面選一個人，才看得到進度。</p>'}
+        <button id="btn-reset" class="danger">清除練習紀錄（全部各軌）</button>
+      </div>` : '<p class="panel-hint">先回選人畫面選一個人，才看得到進度和學習設定。</p>'}
+      <p class="panel-hint">資料來源：發音為教育部《國語注音符號手冊》錄音（CC BY 4.0）；讀音照教育部《國語辭典簡編本》；筆順為教育部《國字標準字體筆順學習網》（CC BY-NC-ND 3.0 臺灣）；詞的圖為 Twemoji（CC BY 4.0）。</p>`)}
     </div>`
 
+  root.querySelectorAll('[data-psec-btn]').forEach(b => {
+    b.onclick = () => {
+      panelSection = b.dataset.psecBtn
+      root.querySelectorAll('[data-psec-btn]').forEach(x => x.classList.toggle('on', x === b))
+      root.querySelectorAll('[data-psec]').forEach(x => x.classList.toggle('on', x.dataset.psec === panelSection))
+      root.scrollTop = 0
+    }
+  })
   root.querySelector('#panel-close').onclick = onClose
   root.querySelector('#btn-check').onclick = onCheck
   root.querySelectorAll('[data-track]').forEach(b => { b.onclick = () => onTrack(b.dataset.track) })

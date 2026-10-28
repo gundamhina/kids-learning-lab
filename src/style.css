@@ -1523,3 +1523,89 @@ html, body { overscroll-behavior: none; } /* 家長區捲到頂再往下拉，An
 @media (prefers-reduced-motion: reduce) {
   .bt-cover.win .bt-result-dog { animation: none; }
 }
+
+/* ================= 大人面板（2026-10 改版）：紙色底、一頁一疊卡片、上面分頁 ================= */
+#screen-panel { --p-bg: #F6EFDF; --p-card: #FFFDF7; --p-line: #E6D7BF; --p-head: #6B4F36; --p-text: #2B3A4A; --p-muted: #86745F; --p-pick: #4A6FA5; --p-pick-dark: #33507A; --p-warm: #E0955B;
+  background: var(--p-bg); color: var(--p-text); }
+#screen-panel .panel { max-width: 1120px; margin: 0 auto; padding: 22px 32px 70px; font-size: 18px; color: var(--p-text); }
+#screen-panel .panel-head { display: flex; align-items: center; gap: 16px; margin-bottom: 6px; }
+#screen-panel .panel-head h2 { margin: 0; font-size: 32px; font-weight: 900; color: var(--p-text); letter-spacing: 2px; }
+.panel-who { display: inline-flex; align-items: center; gap: 8px; padding: 4px 18px 4px 4px; border-radius: 30px; background: var(--p-card); border: 2px solid var(--p-line); font-size: 20px; font-weight: 700; }
+.panel-who-dog { width: 44px; height: 44px; display: flex; border-radius: 50%; background: #EEF3F8; overflow: hidden; }
+.panel-who-dog svg { width: 100%; height: 100%; }
+#screen-panel .panel-msg { color: #A8322A; font-size: 17px; }
+#screen-panel .panel-close { margin-left: auto; padding: 10px 30px; border-radius: 30px; font-size: 21px; font-weight: 700; color: #fff; background: var(--p-pick); box-shadow: 0 4px 0 var(--p-pick-dark); }
+#screen-panel .panel-close:active { translate: 0 3px; box-shadow: 0 1px 0 var(--p-pick-dark); }
+/* 分頁：捲動時黏在上面 */
+.panel-nav { position: sticky; top: 0; z-index: 3; display: flex; flex-wrap: wrap; gap: 8px; margin: 0 -8px 16px; padding: 12px 8px; background: var(--p-bg); }
+.pnav { padding: 10px 24px; border-radius: 26px; font-size: 20px; font-weight: 700; color: var(--p-text); background: var(--p-card); border: 2px solid var(--p-line); }
+.pnav.on { color: #fff; background: var(--p-text); border-color: var(--p-text); }
+.psec { display: none; }
+.psec.on { display: flex; flex-direction: column; gap: 16px; }
+/* 卡片 */
+#screen-panel .panel-row { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 18px 24px 20px; border-radius: 22px; background: var(--p-card); border: 2px solid var(--p-line); box-shadow: 0 3px 0 var(--p-line); }
+#screen-panel .panel-row > b:first-child { flex-basis: 100%; font-size: 21px; font-weight: 900; color: var(--p-head); letter-spacing: 1px; }
+#screen-panel .panel-hint-inline { flex-basis: 100%; font-size: 15px; line-height: 1.65; color: var(--p-muted); }
+#screen-panel .panel-hint { margin: 4px 4px 0; font-size: 15px; line-height: 1.65; color: var(--p-muted); }
+/* 按鈕、選單、拉桿、勾選 */
+#screen-panel .panel-row button, #screen-panel .panel-row .file-btn { padding: 8px 20px; border-radius: 22px; font-size: 18px; color: var(--p-text); background: #F3EBDC; border: 2px solid #E2D2B8; cursor: pointer; }
+#screen-panel .panel-row button:active, #screen-panel .panel-row .file-btn:active { translate: 0 1px; }
+#screen-panel .panel-row button.on, #screen-panel .track-tab.on { color: #fff; background: var(--p-pick); border-color: var(--p-pick-dark); }
+#screen-panel .panel-row button.danger { color: #A8322A; background: #FBE6E1; border-color: #EDBDB3; }
+#screen-panel .panel-row button.danger.armed { color: #fff; background: #A8322A; border-color: #7E241E; }
+#screen-panel .panel-row button.mini { padding: 2px 14px; margin: 0 2px; font-size: 18px; }
+#screen-panel .panel-row button:disabled { opacity: .35; cursor: default; }
+#screen-panel select { max-width: 100%; padding: 6px 12px; border-radius: 12px; font-size: 18px; color: var(--p-text); background: #fff; border: 2px solid #E2D2B8; }
+#screen-panel input[type=range] { width: 170px; accent-color: var(--p-warm); vertical-align: middle; }
+#screen-panel input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--p-pick); vertical-align: -4px; }
+#screen-panel .track-tab { padding: 8px 22px !important; font-size: 19px !important; border-radius: 22px; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+/* 學習設定：一列一項，選項後面是說明 */
+#screen-panel .panel-learn { flex-direction: column; align-items: stretch; gap: 0; }
+#screen-panel .learn-set { width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 0; border-bottom: 2px dashed var(--p-line); }
+#screen-panel .learn-set:last-child { border-bottom: 0; padding-bottom: 0; }
+#screen-panel .learn-set .learn-label { width: 150px; min-width: 0; font-weight: 700; }
+#screen-panel .learn-set .panel-hint-inline { padding-left: 158px; }
+/* 難度與範圍 */
+#screen-panel .panel-difficulty { flex-direction: row; align-items: center; }
+#screen-panel .range-pick { width: 100%; min-width: 0; gap: 10px 22px; }
+#screen-panel .range-pick > label { max-width: 100%; }
+#screen-panel #sel-unlocked { max-width: 360px; }
+#screen-panel .range-groups { flex-basis: 100%; min-width: 0; }
+#screen-panel .range-groups label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#screen-panel .range-groups { gap: 8px; }
+#screen-panel .range-groups label { padding: 4px 12px 4px 8px; border-radius: 16px; background: #F7F1E4; font-size: 16px; }
+/* 總覽：日曆和每天幾分鐘並排，下面是各軌答對比例 */
+#screen-panel .panel-overview { display: grid; grid-template-columns: auto 1fr; align-items: start; gap: 18px 36px; }
+#screen-panel .panel-overview > b:first-child { grid-column: 1 / -1; }
+#screen-panel .panel-overview .ov-block:nth-of-type(n+3) { grid-column: 1 / -1; }
+#screen-panel .ov-title { font-size: 15px; color: var(--p-muted); }
+#screen-panel .ov-day { width: 17px; height: 17px; border-radius: 4px; background: rgba(94,154,107,var(--a)); outline: 1px solid rgba(107,79,54,.14); }
+#screen-panel .ov-bar i { background: #5E9A6B; }
+#screen-panel .ov-meter { background: #F1E8D6; }
+#screen-panel .ov-meter i { background: var(--p-warm); }
+#screen-panel .ov-row { padding: 4px 0; }
+#screen-panel .panel-stats { flex-direction: column; align-items: stretch; }
+#screen-panel .stats-sum { font-size: 20px; }
+#screen-panel .stats-sum b { color: var(--p-head); }
+/* 骨頭 */
+.bones-now { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.bones-now .bone-ic { width: 44px; height: 30px; display: flex; }
+.bones-now .bone-ic svg { width: 100%; height: 100%; }
+.bones-now strong { font-size: 34px; font-weight: 900; color: #B8860B; }
+.bones-now small { margin: 0 8px 0 4px; font-size: 16px; color: var(--p-muted); }
+/* 注音進度的格子 */
+#screen-panel .panel-progress { display: block; }
+#screen-panel .panel-progress .panel-pages { margin-bottom: 14px; padding: 0; border: 0; box-shadow: none; background: none; }
+#screen-panel .pgroup-title { color: var(--p-head); }
+#screen-panel .ptile { background: #fff; border: 2px solid var(--p-line); border-left-width: 12px; }
+#screen-panel .ptile.red { border-left-color: #E07A5F; } #screen-panel .ptile.yellow { border-left-color: #E8C86A; } #screen-panel .ptile.green { border-left-color: #6B9E6B; }
+#screen-panel .ptile-sym { color: var(--p-text); }
+#screen-panel .ptile-rep { border-color: var(--p-line); }
+/* 使用者 */
+#screen-panel .puser { padding: 6px 8px 6px 14px; border-radius: 26px; background: #F7F1E4; }
+/* 直的（手機、平板直放）：分頁和學習設定擠一點 */
+#stage.portrait #screen-panel .panel { padding: 18px 20px 60px; }
+#stage.portrait .pnav { padding: 8px 16px; font-size: 18px; }
+#stage.portrait #screen-panel .learn-set .learn-label { width: 100%; }
+#stage.portrait #screen-panel .learn-set .panel-hint-inline { padding-left: 0; }
