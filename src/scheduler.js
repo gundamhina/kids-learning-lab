@@ -266,9 +266,12 @@ function pairKey (a, b) {
 // 有混淆對時，插一題二選一加練。其他題照權重抽：越不熟越常出，出現不到 3 次的、到期該複習的也拉高
 export function buildRound (state, rng, size = ROUND_SIZE, now = Date.now()) {
   const pool = activePool(state)
+  // 家長按了「下一局只練最弱的」：題目只從 focus 裡出（干擾項照樣從整個範圍挑）
+  const targets = Array.isArray(state.focus) && state.focus.length ? state.focus.filter(s => pool.includes(s)) : []
+  const from = targets.length ? targets : pool
   const tier = TIERS[effectiveTier(state)]
   const optionCount = Math.min(tier.options, pool.length)
-  const weakest = [...pool].sort((a, b) => stars(state, a) - stars(state, b)).slice(0, 3)
+  const weakest = [...from].sort((a, b) => stars(state, a) - stars(state, b)).slice(0, 3)
   const due = pool.filter(s => reviewDue(state, s, now)).sort((a, b) => state.mastery[a].last - state.mastery[b].last)
   const weightOf = s => {
     let w = Math.pow(6 - stars(state, s), 2)
@@ -293,8 +296,8 @@ export function buildRound (state, rng, size = ROUND_SIZE, now = Date.now()) {
     }
     // 強迫的兩格：第一格最弱的；第二格到期該複習的（有的話）
     const isReviewSlot = forced.has(i) && i === slots[1] && due.length
-    const source = forced.has(i) ? weakest : pool
-    const target = isReviewSlot ? due.shift() : weightedPick(source, weightOf, rng)
+    const source = forced.has(i) ? weakest : from
+    const target = isReviewSlot && !targets.length ? due.shift() : weightedPick(source, weightOf, rng)
     // 詞比較大，最多 4 個選項
     const count = target.includes(' ') ? Math.min(optionCount, 4) : optionCount
     const distractors = pickDistractors(target, pool, count - 1, tier.distract, rng, rng() < tier.similar)
@@ -535,6 +538,40 @@ export function recordAnswer (state, { target, ok, picked, ms, drill = null, at 
 
   const { tier, recent } = adjustTier(state.tier, [...state.recent, ok].slice(-RECENT_CAP))
   return { ...state, mastery, confusions, tier, recent, log }
+}
+
+// 這一軌最弱的幾題（練過、星星最少的先；沒練過的排後面）：家長區「下一局只練最弱的」用
+export function weakestItems (state, n = 5) {
+  const pool = activePool(state)
+  const seen = pool.filter(s => state.mastery[s] && (state.mastery[s].history || []).length)
+  return [...seen].sort((a, b) => stars(state, a) - stars(state, b)).slice(0, n)
+}
+
+// 全部科目的總覽（家長區學習統計）：每天答了幾題（練習日曆）、每一軌最近 30 天第一次就答對的比例和平均作答秒數
+export function overviewStats (state, now = Date.now(), days = 84) {
+  const perDay = {}
+  const perTrack = {}
+  const since = now - 30 * 86400000
+  for (const t of TRACKS) {
+    const tr = (state.tracks && state.tracks[t]) || {}
+    for (const e of tr.log || []) {
+      const k = dayKey(e.at)
+      perDay[k] = (perDay[k] || 0) + 1
+      if (e.at < since) continue
+      const p = perTrack[t] || (perTrack[t] = { total: 0, ok: 0 })
+      p.total++
+      if (e.ok) p.ok++
+    }
+    // 平均秒數：最近 10 次的作答時間（有記的才算）
+    const ms = Object.values(tr.mastery || {}).flatMap(m => (m.history || []).map(h => h.ms)).filter(x => x > 0 && x < 120000)
+    if (ms.length && perTrack[t]) perTrack[t].sec = ms.reduce((a, b) => a + b, 0) / ms.length / 1000
+  }
+  const cal = []
+  for (let i = days - 1; i >= 0; i--) {
+    const k = dayKey(now - i * 86400000)
+    cal.push({ day: k, n: perDay[k] || 0 })
+  }
+  return { cal, perTrack }
 }
 
 // 長期統計：累計題數、答對數，以及每個符號的累計

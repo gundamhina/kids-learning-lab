@@ -1,7 +1,7 @@
 // 選人、首頁、結算、大人面板、舞台縮放。
 
 import { GROUPS, REP_CHAR, GROUP_NAMES, WORD_TEXT } from './data.js'
-import { stars, activePool, effectiveTier, unlockedCount, lifetimeStats, dailyStats, TIERS, ZHUYIN_TRACKS, TRACK_NAMES } from './scheduler.js'
+import { stars, activePool, effectiveTier, unlockedCount, lifetimeStats, dailyStats, TIERS, ZHUYIN_TRACKS, TRACK_NAMES, overviewStats, weakestItems, TRACKS } from './scheduler.js'
 import { dogSvg, confettiHtml, DOG_COLORS, bgHtml, cardArt, boneSvg, SHOP_ICONS, UX_ICONS, DOG_NAMES } from './art.js'
 
 
@@ -547,6 +547,46 @@ function pageOf (gi, g) {
 const VOLUMES = [['voiceVol', '發音'], ['sfxVol', '音效'], ['musicVol', '背景音樂']]
 const volPct = (settings, key) => Math.round((typeof settings[key] === 'number' ? settings[key] : 1) * 100)
 // 音量那一列：家長區、老師後台都放在最上面
+// ---- 學習統計（全部科目）：練習日曆、每天玩幾分鐘、每一軌第一次就答對的比例、筆順最常錯在哪 ----
+const TRACK_GAMES = { listen: '釣魚、打地鼠', read: '唸唸看', write: '寫寫看', word: '連連看、填空', tone: '聲調填空', spell: '拼拼看', friend: '符號找朋友', count: '數一數、做數量', compare: '比多少', pattern: '找規律', odd: '找不同', maze: '迷宮' }
+function overviewHtml (full) {
+  const { cal, perTrack } = overviewStats(full)
+  const max = Math.max(1, ...cal.map(c => c.n))
+  const weeks = []
+  for (let i = 0; i < cal.length; i += 7) weeks.push(cal.slice(i, i + 7))
+  const calHtml = `<div class="ov-cal">${weeks.map(w => `<div class="ov-week">${w.map(c =>
+    `<span class="ov-day" style="--a:${c.n ? 0.25 + 0.75 * c.n / max : 0}" title="${c.day}：${c.n} 題"></span>`).join('')}</div>`).join('')}</div>`
+  const st = full.screenTime || {}
+  const last7 = cal.slice(-7)
+  const mins = last7.map(c => Math.round((st[c.day] || 0) / 60000))
+  const mMax = Math.max(1, ...mins)
+  const minsHtml = `<div class="ov-bars">${last7.map((c, i) => `<div class="ov-bar"><i style="height:${Math.round(60 * mins[i] / mMax)}px"></i><b>${mins[i]}</b><small>${c.day.slice(5)}</small></div>`).join('')}</div>`
+  const rows = TRACKS.filter(t => perTrack[t]).map(t => {
+    const p = perTrack[t]
+    const pct = Math.round(100 * p.ok / p.total)
+    return `<div class="ov-row"><span class="ov-name">${TRACK_NAMES[t]}　<small>${TRACK_GAMES[t]}</small></span>
+      <span class="ov-meter"><i style="width:${pct}%"></i></span><b>${pct}%</b><small>${p.total} 題${p.sec ? '・平均 ' + p.sec.toFixed(1) + ' 秒' : ''}${p.total < 10 ? '（題數還少）' : ''}</small></div>`
+  }).join('') || '<span>最近 30 天還沒有紀錄</span>'
+  const f = full.strokeFaults
+  const faultHtml = f && (f.direction + f.order + f.shape)
+    ? `方向反了 ${f.direction} 次、寫成別的筆 ${f.order} 次、形狀不像 ${f.shape} 次。最常錯：${Object.entries(f.bySymbol || {}).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([s, n]) => s + '（' + n + '）').join('、')}`
+    : '還沒有寫錯的紀錄'
+  return `<div class="panel-row panel-overview"><b>學習統計</b>
+    <div class="ov-block"><span class="ov-title">練習日曆（最近 12 週，一直排是一週，顏色越深那天做的題越多）</span>${calHtml}</div>
+    <div class="ov-block"><span class="ov-title">最近 7 天每天玩幾分鐘（只算遊戲畫面開著的時間）</span>${minsHtml}</div>
+    <div class="ov-block"><span class="ov-title">最近 30 天第一次就答對的比例</span>${rows}</div>
+    <div class="ov-block"><span class="ov-title">筆順最常錯在哪（學寫字、教我寫）</span><span>${faultHtml}</span></div>
+  </div>`
+}
+// 這一軌最弱的幾題，下一局只練它們
+function weakHtml (state, track) {
+  const items = weakestItems(state)
+  if (!items.length) return ''
+  const on = state.focus && state.focus.track === track
+  return `<div class="panel-row"><b>弱項練習</b> 這一軌最弱的：${items.map(s => WORD_TEXT[s] || s).join('、')}
+    <button id="btn-weak" class="${on ? 'on' : ''}">${on ? '已設定：下一局只練這些（再按取消）' : '下一局只練這些'}</button></div>`
+}
+
 // ---- 學習設定（每個孩子各自一份）：每局題數、數數範圍、每天玩幾局、延長一次加幾局 ----
 const LEARN_CHOICES = [
   ['roundSize', '每局題數', [3, 5, 8, 10], 5, n => n + ' 題', '所有玩法共用；翻牌、學寫字、連連看、迷宮有自己的數量。'],
@@ -653,7 +693,7 @@ function renderTeacherPanel (root, { profile, profiles, state, settings, voices,
   })
 }
 
-function renderFamilyPanel (root, { profile, profiles, state, track = 'listen', page = null, onTrack, onPage, settings, voices, onKnownChange, onSettings, onVolumeTest, onStateChange, onExport, onImport, onResetProgress, onRemoveProfile, onClose, onSay, onCheck }) {
+function renderFamilyPanel (root, { profile, profiles, state, full = null, track = 'listen', page = null, onTrack, onPage, settings, voices, onKnownChange, onSettings, onVolumeTest, onStateChange, onExport, onImport, onResetProgress, onRemoveProfile, onClose, onSay, onCheck }) {
   // 沒指定頁：看詞軌、調軌就開詞那頁，其他軌開注音符號
   const curPage = page || (track === 'word' || track === 'tone' ? 'words' : 'symbols')
   const lifetime = state ? lifetimeStats(state) : { bySymbol: {} }
@@ -704,11 +744,12 @@ function renderFamilyPanel (root, { profile, profiles, state, track = 'listen', 
         <b>使用者</b>${usersHtml}
       </div>
       ${profile ? learnSettingsHtml(state) : ''}
+      ${profile && full ? overviewHtml(full) : ''}
       ${profile ? `
       <div class="panel-row panel-tracks">
         <b>看哪一軌</b>
         ${ZHUYIN_TRACKS.map(t => `<button class="track-tab ${t === track ? 'on' : ''}" data-track="${t}">${TRACK_NAMES[t]}</button>`).join('')}
-        <span class="panel-hint-inline">聽＝釣魚、打地鼠；讀＝唸唸看；寫＝寫寫看、學寫字；詞＝連連看、填空；調＝聲調填空。翻牌、學寫字是純練習，不記進度。星星、混淆、階級、解鎖各軌分開算，下面的設定各軌共用。</span>
+        <span class="panel-hint-inline">聽＝釣魚、打地鼠；讀＝唸唸看；寫＝寫寫看、學寫字；詞＝連連看、填空；調＝聲調填空；拼＝拼拼看；認＝符號找朋友。數學、動腦的紀錄看上面的學習統計。翻牌、學寫字是純練習，不記進度。星星、混淆、階級、解鎖各軌分開算，下面的設定各軌共用。</span>
       </div>
       <div class="panel-row">
         <div>「${TRACK_NAMES[track]}」目前出題階級：<b>${effectiveTier(state) + 1}</b> / 6（${tierLabel(TIERS[effectiveTier(state)])}）</div>
@@ -718,6 +759,7 @@ function renderFamilyPanel (root, { profile, profiles, state, track = 'listen', 
           ，最近 10 題 ${state.recent.filter(Boolean).length}/${state.recent.length} 對</div>
         <div>混淆中：${confusions.length ? confusions.map(k => k.replace('|', '／')).join('、') : '沒有'}</div>
       </div>
+      ${profile ? weakHtml(state, track) : ''}
       ${profile ? statsHtml(state) : ''}
       ${profile ? `
       <div class="panel-row">
@@ -788,6 +830,8 @@ function renderFamilyPanel (root, { profile, profiles, state, track = 'listen', 
     root.querySelector('#sel-tier').onchange = e => {
       onStateChange({ lockTier: e.target.value === '' ? null : parseInt(e.target.value, 10) })
     }
+    const weakBtn = root.querySelector('#btn-weak')
+    if (weakBtn) weakBtn.onclick = () => onStateChange({ focus: state.focus && state.focus.track === track ? null : { track, items: weakestItems(state) } })
     root.querySelectorAll('[data-learn]').forEach(b => {
       b.onclick = () => onStateChange({ [b.dataset.learn]: Number(b.dataset.val) })
     })

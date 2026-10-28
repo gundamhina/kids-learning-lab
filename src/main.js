@@ -189,6 +189,16 @@ function main () {
     audio.sayText('今天練習完囉！' + task[1])
   }
 
+  // 螢幕時間：在遊戲畫面、而且畫面看得到時，每 15 秒記一次（家長區「每天玩幾分鐘」），只留最近 60 天
+  setInterval(() => {
+    if (currentScreen !== 'game' || document.visibilityState !== 'visible' || !profile || isTeacher()) return
+    const k = today()
+    const st = { ...(state.screenTime || {}), [k]: ((state.screenTime || {})[k] || 0) + 15000 }
+    for (const d of Object.keys(st).sort().slice(0, -60)) delete st[d]
+    state = { ...state, screenTime: st }
+    store.save(profile.id, state)
+  }, 15000)
+
   function goHome () {
     if (limitReached()) return showNight()
     destroyGame()
@@ -496,7 +506,13 @@ function main () {
     })
   }
 
-  function currentView () { return trackView(state, TRACK_OF[kind]) }
+  // 家長按了「下一局只練最弱的」：這一軌的下一局題目只從那幾題出，用過一次就清掉
+  function currentView () {
+    const t = TRACK_OF[kind]
+    const v = trackView(state, t)
+    if (state.focus && state.focus.track === t) return { ...v, focus: state.focus.items }
+    return v
+  }
 
   function finishRound () {
     destroyGame()
@@ -509,6 +525,7 @@ function main () {
       store.save(profile.id, state)
       daily = { ...dailyView(state, today()), goal: DAILY_GOAL }
     }
+    if (state.focus && state.focus.track === TRACK_OF[kind]) { state = { ...state, focus: null }; store.save(profile.id, state) }
     const perfect = !PRACTICE_KINDS.includes(kind) && earned.length > 0 && earned.every(Boolean)
     renderResult(resultEl, myColor(), { roundBones, bones: state.bones, mates: isTeacher() ? [] : teamOf(state, profile.color).filter(c => c !== myColor()), daily, perfect, teacher: isTeacher() })
     resultEl.querySelector('#btn-again').addEventListener('pointerdown', () => { if (limitReached()) showNight(); else startGame(kind) })
@@ -906,7 +923,13 @@ function main () {
 
   // ---- 符號找朋友：看符號（狗狗先唸），從三張圖卡選第一個字有這個音的。記在「認」軌，對錯算在符號上 ----
   // 學寫字寫錯一筆：說出錯在哪。形狀不像就不說話，直接再示範一次
-  function sayStrokeFault (fault) {
+  function sayStrokeFault (fault, symbol) {
+    // 記下錯在哪（家長區「筆順最常錯在哪」）
+    if (profile && !isTeacher()) {
+      const f = state.strokeFaults || { direction: 0, order: 0, shape: 0, bySymbol: {} }
+      state = { ...state, strokeFaults: { ...f, [fault]: (f[fault] || 0) + 1, bySymbol: { ...f.bySymbol, [symbol]: (f.bySymbol[symbol] || 0) + 1 } } }
+      store.save(profile.id, state)
+    }
     if (fault === 'direction') audio.sayText('從圓點開始寫')
     else if (fault === 'order') audio.sayText('先寫亮起來的這一筆')
   }
@@ -1368,6 +1391,7 @@ function main () {
       profile,
       profiles: store.loadProfiles(),
       state: state ? trackView(state, panelTrack) : null,
+      full: state,
       track: panelTrack,
       page: panelPage,
       onTrack (t) { panelTrack = t; panelPage = null; openPanel() },

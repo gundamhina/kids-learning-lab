@@ -7,7 +7,7 @@ import {
   questionReward, roundBonus, comboBonus,
   toneOfSyllable, stripTone, toneTiles, TONE_ORDER, TONE_PARTNER, toneHardness, buildToneRound,
   teamOf, partnerOf, setPartner,
-  syllablesOnlyState, spellTiles, TRACKS, friendWords, buildFriendQuestion, reviewDue, REVIEW_DAYS,
+  syllablesOnlyState, spellTiles, TRACKS, friendWords, buildFriendQuestion, reviewDue, REVIEW_DAYS, weakestItems, overviewStats,
 } from '../src/scheduler.js';
 import { GROUPS, SYMBOLS, coreOf } from '../src/data.js';
 
@@ -804,4 +804,29 @@ test('間隔複習：到期的題目一定會排進這一局', () => {
     const round = buildRound({ ...s, rangeGroups: [0] }, rng, 5, t0 + 21 * DAY)
     assert.ok(round.some(q => q.target === 'ㄛ'), '到期的 ㄛ 要出現')
   }
+})
+
+// ---- 家長區：弱項練習、學習統計 ----
+test('弱項練習：挑練過、星星最少的；下一局題目只從那幾題出', () => {
+  let s = trackView(createState(), 'listen')
+  const at = Date.now()
+  for (const sym of GROUPS[0]) s = recordAnswer(s, { target: sym, ok: sym !== 'ㄛ', picked: sym, ms: 900, at })
+  s = recordAnswer(s, { target: 'ㄛ', ok: false, picked: 'ㄜ', ms: 900, at })
+  const weak = weakestItems(s, 2)
+  assert.equal(weak[0], 'ㄛ')
+  let seed = 4
+  const rng = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 }
+  const round = buildRound({ ...s, rangeGroups: [0, 1], focus: ['ㄛ', 'ㄜ'] }, rng)
+  assert.ok(round.every(q => ['ㄛ', 'ㄜ'].includes(q.target) || q.drill), JSON.stringify(round.map(q => q.target)))
+})
+
+test('學習統計：今天答的題算進日曆和這一軌的比例', () => {
+  const now = new Date(2026, 9, 20, 15).getTime()
+  let s = createState()
+  s = applyTrack(s, 'listen', recordAnswer(trackView(s, 'listen'), { target: 'ㄚ', ok: true, picked: 'ㄚ', ms: 1500, at: now }))
+  s = applyTrack(s, 'count', recordAnswer(trackView(s, 'count'), { target: '3', ok: false, picked: null, ms: 2000, at: now }))
+  const o = overviewStats(s, now)
+  assert.equal(o.cal[o.cal.length - 1].n, 2)
+  assert.deepEqual([o.perTrack.listen.ok, o.perTrack.listen.total], [1, 1])
+  assert.deepEqual([o.perTrack.count.ok, o.perTrack.count.total], [0, 1])
 })

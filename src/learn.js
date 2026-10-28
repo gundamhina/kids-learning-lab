@@ -118,7 +118,7 @@ export function createLearn (root, { color = 0, overlay = false, onClose = null,
     shakePad()
     sad()
     if (fault !== 'shape') guide.classList.add('fault-' + fault)
-    if (onFault) onFault(fault)
+    if (onFault) onFault(fault, symbol)
     await wait(450)
     if (gone) return
     clearInk()
