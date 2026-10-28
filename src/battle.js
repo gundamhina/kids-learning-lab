@@ -42,7 +42,8 @@ function saveBattleSettings (s) {
 export function canBattle () {
   if (new URLSearchParams(location.search).has('battle')) return true // 截圖、桌機測試用
   const touch = (navigator.maxTouchPoints || 0) > 0 || (window.matchMedia && window.matchMedia('(any-pointer: coarse)').matches)
-  return touch && Math.min(window.innerWidth, window.innerHeight) >= 600
+  // 看整個螢幕的短邊，不看視窗：平板的網址列、觸控筆電縮小的視窗都不該讓按鈕不見
+  return touch && Math.min(screen.width, screen.height) >= 600
 }
 
 // ---- 畫題目、選項 ----
