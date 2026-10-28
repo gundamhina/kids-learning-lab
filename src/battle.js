@@ -21,6 +21,13 @@ const HOME_SVG = '<svg viewBox="0 0 24 24" width="40" height="40" fill="#fff"><p
 const AGAIN_SVG = '<svg viewBox="0 0 24 24" width="44" height="44" fill="#fff"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg>'
 const CROWN_SVG = '<svg viewBox="0 0 64 44" width="150" height="103"><path d="M4 14l14 12L32 4l14 22 14-12-6 28H10z" fill="#F2C94C" stroke="#B8860B" stroke-width="3" stroke-linejoin="round"/><circle cx="32" cy="30" r="4" fill="#E07A5F"/></svg>'
 
+// 怎麼坐：左右各半、上下面對面（上面那個人的臉倒過來）
+const seatFace = (x, y, flip) => `<g transform="translate(${x} ${y})${flip ? ' rotate(180)' : ''}"><circle r="10" fill="#FFE08A" stroke="#2B3A4A" stroke-width="2.4"/><circle cx="-3.5" cy="-2" r="1.6" fill="#2B3A4A"/><circle cx="3.5" cy="-2" r="1.6" fill="#2B3A4A"/><path d="M-4 3q4 3.5 8 0" stroke="#2B3A4A" stroke-width="2" fill="none" stroke-linecap="round"/></g>`
+const SEAT_LR = `<svg viewBox="0 0 96 64" width="96" height="64"><rect x="3" y="3" width="90" height="58" rx="8" fill="#fff" stroke="currentColor" stroke-width="4"/><path d="M48 6v52" stroke="currentColor" stroke-width="3" stroke-dasharray="5 4"/>${seatFace(25, 32)}${seatFace(71, 32)}</svg>`
+const SEAT_FACE = `<svg viewBox="0 0 96 64" width="96" height="64"><rect x="3" y="3" width="90" height="58" rx="8" fill="#fff" stroke="currentColor" stroke-width="4"/><path d="M6 32h84" stroke="currentColor" stroke-width="3" stroke-dasharray="5 4"/>${seatFace(48, 17, true)}${seatFace(48, 47)}</svg>`
+const PLAY_SVG = '<svg viewBox="0 0 24 24" width="40" height="40" fill="#fff"><path d="M7 4.5v15a1 1 0 0 0 1.5.9l12-7.5a1 1 0 0 0 0-1.7l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>'
+const SUBJECT_COLORS = { zhuyin: '#4A6FA5', math: '#D9844B', english: '#3F8F8C', brain: '#8A6FB0' }
+
 function battleEsc (s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])) }
 const emojiImg = icon => `<img class="bt-img" src="img/emoji/${twemojiName(icon)}.svg" alt="" draggable="false">`
 
@@ -105,40 +112,40 @@ export function openBattle (root, opts) {
   }
 
   // ---- 設定 ----
+  // 橫的：左邊選人、怎麼坐、幾題、開始；右邊玩法（注音、數學、英文一排，動腦一排）。直的：由上往下排，開始在最下面
   function renderSetup () {
     clearTimers()
     const slot = i => {
       const pl = cfg.players[i]
+      const seat = cfg.layout === 'face' ? (i === 0 ? '下面' : '上面') : (i === 0 ? '左邊' : '右邊')
       return `<button class="bt-slot" data-slot="${i}" style="--c:${DOG_COLORS[pl.color % DOG_COLORS.length].main}">
-        <span class="bt-slot-dog">${playerAvatar(pl)}</span><b>${battleEsc(playerName(pl))}</b>
-        <small>${cfg.layout === 'face' ? (i === 0 ? '下面' : '上面') : (i === 0 ? '左邊' : '右邊')}</small></button>`
+        <span class="bt-seat-tag">${seat}</span><span class="bt-slot-dog">${playerAvatar(pl)}</span>
+        <b>${pl.guest ? '客人' : battleEsc(pl.name)}</b>${pl.guest ? `<small class="bt-stars">${'★'.repeat(pl.level)}</small>` : ''}</button>`
     }
-    const subjects = Object.keys(SUBJECT_NAMES).map(s => `<div class="bt-subject"><span class="bt-subject-name">${SUBJECT_NAMES[s]}</span><div class="bt-cards">${BATTLE_GAMES.filter(g => g.subject === s).map(g =>
-      `<button class="bt-card ${g.key === cfg.game ? 'on' : ''}" data-game="${g.key}"><span class="card-pic">${cardArt(g.card || g.key)}</span><small>${g.name}</small></button>`).join('')}</div></div>`).join('')
+    const subjects = Object.keys(SUBJECT_NAMES).map(s => `<div class="bt-subject" style="--sc:${SUBJECT_COLORS[s]}"><span class="bt-subject-name">${SUBJECT_NAMES[s]}</span><div class="bt-cards">${BATTLE_GAMES.filter(g => g.subject === s).map(g =>
+      `<button class="bt-card ${g.key === cfg.game ? 'on' : ''}" data-game="${g.key}" aria-label="${g.name}"><span class="card-pic">${cardArt(g.card || g.key)}</span><small>${g.name}</small></button>`).join('')}</div></div>`).join('')
     root.innerHTML = bgHtml('home') + `<div class="bt-setup">
-      <div class="bt-setup-top">
-        <button class="round-btn bt-back" aria-label="回首頁">${HOME_SVG}</button>
-        <h2>對戰</h2>
-        <button class="bt-start" aria-label="開始">開始</button>
-      </div>
-      <div class="bt-players">${slot(0)}<span class="bt-vs">${VS_SVG}</span>${slot(1)}</div>
-      <div class="bt-opts-row">
-        <div class="bt-seg" data-seg="layout"><button data-v="lr" class="${cfg.layout === 'lr' ? 'on' : ''}">左右坐</button><button data-v="face" class="${cfg.layout === 'face' ? 'on' : ''}">面對面</button></div>
-        <div class="bt-seg" data-seg="goal"><span>先答對</span>${GOALS.map(g => `<button data-v="${g}" class="${cfg.goal === g ? 'on' : ''}">${g}</button>`).join('')}<span>題</span></div>
+      <div class="bt-setup-top"><button class="round-btn bt-back" aria-label="回首頁">${HOME_SVG}</button><h2>對戰</h2></div>
+      <div class="bt-side">
+        <div class="bt-players">${slot(0)}<span class="bt-vs">${VS_SVG}</span>${slot(1)}</div>
+        <div class="bt-fields">
+          <div class="bt-field"><span class="bt-label">怎麼坐</span><div class="bt-choice-row">
+            <button class="bt-seat ${cfg.layout === 'lr' ? 'on' : ''}" data-layout="lr">${SEAT_LR}<small>左右坐</small></button>
+            <button class="bt-seat ${cfg.layout === 'face' ? 'on' : ''}" data-layout="face">${SEAT_FACE}<small>面對面</small></button></div></div>
+          <div class="bt-field"><span class="bt-label">先答對幾題</span><div class="bt-choice-row">${GOALS.map(g => `<button class="bt-goal ${cfg.goal === g ? 'on' : ''}" data-goal="${g}">${g}</button>`).join('')}</div></div>
+        </div>
       </div>
       <div class="bt-games">${subjects}</div>
+      <button class="bt-start" aria-label="開始">${PLAY_SVG}開始</button>
     </div>`
     mountBgs(root)
     root.querySelector('.bt-back').addEventListener('pointerdown', opts.onExit)
     root.querySelector('.bt-start').addEventListener('pointerdown', () => { persist(); startMatch() })
     root.querySelectorAll('.bt-slot').forEach(b => b.addEventListener('pointerdown', () => openPicker(Number(b.dataset.slot))))
-    root.querySelectorAll('.bt-card').forEach(b => b.addEventListener('pointerdown', () => { cfg.game = b.dataset.game; persist(); renderSetup() }))
-    root.querySelectorAll('.bt-seg').forEach(seg => seg.querySelectorAll('button').forEach(b => b.addEventListener('pointerdown', () => {
-      if (seg.dataset.seg === 'layout') cfg.layout = b.dataset.v
-      else cfg.goal = Number(b.dataset.v)
-      persist()
-      renderSetup()
-    })))
+    const pick = (sel, fn) => root.querySelectorAll(sel).forEach(b => b.addEventListener('pointerdown', () => { fn(b); persist(); renderSetup() }))
+    pick('.bt-card', b => { cfg.game = b.dataset.game })
+    pick('.bt-seat', b => { cfg.layout = b.dataset.layout })
+    pick('.bt-goal', b => { cfg.goal = Number(b.dataset.goal) })
   }
 
   // 選人：既有的使用者，或客人（選程度 1～6）。選了另一邊已經在用的人就兩邊對調

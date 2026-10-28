@@ -1333,35 +1333,59 @@ html, body { overscroll-behavior: none; } /* 家長區捲到頂再往下拉，An
 .battle-btn:active { translate: 0 4px; box-shadow: 0 2px 0 #8E3A28; }
 #screen-battle { user-select: none; -webkit-user-select: none; }
 
-/* 設定頁：上面選人，中間版面和題數，下面玩法 */
-.bt-setup { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 20px 30px 40px; overflow-y: auto; touch-action: pan-y; }
-.bt-setup-top { width: 100%; display: flex; align-items: center; justify-content: space-between; }
-.bt-setup-top .round-btn { width: 76px; height: 76px; }
-.bt-setup h2 { margin: 0; font-size: 52px; font-weight: 900; color: #2B3A4A; text-shadow: 0 3px 0 #fff; }
-.bt-start { padding: 12px 48px; border-radius: 40px; font-size: 40px; font-weight: 900; color: #fff; background: #5E9A6B var(--paper-tex); border: 5px solid #3E6E48; box-shadow: 0 7px 0 #3E6E48; filter: url(#wobble); }
-.bt-start:active { translate: 0 5px; box-shadow: 0 2px 0 #3E6E48; }
-.bt-players { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; justify-content: center; }
-.bt-slot { display: flex; align-items: center; gap: 14px; min-width: 300px; padding: 8px 26px 8px 8px; border-radius: 60px; background: var(--paper) var(--paper-tex); border: 5px solid var(--c); box-shadow: 0 6px 0 var(--c); }
-.bt-slot:active { translate: 0 4px; box-shadow: 0 2px 0 var(--c); }
-.bt-slot-dog { width: 84px; height: 84px; flex: none; display: flex; }
+/* 設定頁。橫的：左欄選人、怎麼坐、幾題、開始，右欄每科一排玩法。直的：由上往下，開始在最下面 */
+.bt-setup { position: absolute; inset: 0; display: grid; grid-template-columns: 420px 1fr; grid-template-rows: auto 1fr auto; grid-template-areas: "top top" "side games" "start games"; gap: 18px 28px; padding: 18px 32px 28px; overflow-y: auto; touch-action: pan-y; }
+.bt-setup-top { grid-area: top; display: flex; align-items: center; gap: 20px; }
+.bt-setup-top .round-btn { width: 72px; height: 72px; }
+.bt-setup-top .round-btn svg { width: 38px; height: 38px; }
+.bt-setup h2 { margin: 0; font-size: 50px; font-weight: 900; color: #2B3A4A; letter-spacing: 6px; text-shadow: 0 3px 0 #fff; }
+.bt-side { grid-area: side; display: flex; flex-direction: column; justify-content: center; gap: 22px; padding: 22px; border-radius: 34px; background: rgba(255,253,247,.82); }
+.bt-players { display: flex; align-items: center; justify-content: center; gap: 0; }
+.bt-slot { position: relative; width: 162px; padding: 30px 10px 14px; display: flex; flex-direction: column; align-items: center; gap: 4px; border-radius: 30px; background: var(--paper) var(--paper-tex); border: 5px solid var(--c); box-shadow: 0 7px 0 var(--c); filter: url(#wobble); transition: translate .1s; }
+.bt-slot:active { translate: 0 5px; box-shadow: 0 2px 0 var(--c); }
+.bt-seat-tag { position: absolute; top: -16px; left: 50%; translate: -50% 0; padding: 3px 14px; border-radius: 16px; background: var(--c); color: #fff; font-size: 19px; font-weight: 900; white-space: nowrap; }
+.bt-slot-dog { width: 104px; height: 104px; display: flex; }
 .bt-slot-dog svg { width: 100%; height: 100%; }
-.bt-slot b { font-size: 32px; color: #2B3A4A; white-space: nowrap; }
-.bt-slot small { margin-left: auto; padding-left: 12px; font-size: 22px; font-weight: 900; color: var(--ink); }
-.bt-vs { width: 88px; height: 88px; flex: none; border-radius: 50%; background: #C8553D; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 0 #8E3A28; }
-.bt-opts-row { display: flex; gap: 22px; flex-wrap: wrap; justify-content: center; }
-.bt-seg { display: flex; align-items: center; gap: 6px; padding: 7px; border-radius: 40px; background: rgba(255,253,247,.9); border: 4px solid var(--wood); font-size: 26px; font-weight: 900; color: #2B3A4A; }
-.bt-seg span { padding: 0 8px; }
-.bt-seg button { padding: 8px 22px; border-radius: 30px; font-size: 28px; font-weight: 900; color: #2B3A4A; background: transparent; }
-.bt-seg button.on { background: #4A6FA5; color: #fff; }
-.bt-games { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px 20px; }
-.bt-subject { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 30px; background: rgba(255,253,247,.65); }
-.bt-subject-name { writing-mode: vertical-rl; font-size: 26px; font-weight: 900; color: #2B3A4A; letter-spacing: 4px; }
-.bt-cards { display: flex; gap: 8px; }
-.bt-card { width: 116px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px; border-radius: 22px; border: 4px solid transparent; background: transparent; transition: scale .12s var(--ease-out); }
+.bt-slot b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; font-size: 28px; color: #2B3A4A; white-space: nowrap; }
+.bt-stars { font-size: 18px; letter-spacing: 1px; color: #C39A1E; }
+.bt-vs { z-index: 1; width: 72px; height: 72px; margin: 0 -10px; flex: none; border-radius: 50%; background: #C8553D; border: 4px solid #FFFDF7; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 0 #8E3A28; }
+.bt-vs svg { width: 46px; height: 46px; }
+.bt-fields { display: flex; flex-direction: column; gap: 18px; }
+.bt-field { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.bt-label { font-size: 22px; font-weight: 900; color: var(--ink); letter-spacing: 2px; }
+.bt-choice-row { display: flex; justify-content: center; gap: 14px; }
+.bt-seat { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 14px 8px; border-radius: 22px; background: var(--paper) var(--paper-tex); border: 4px solid var(--wood); box-shadow: 0 5px 0 var(--wood); color: #B9A48C; }
+.bt-seat small { font-size: 20px; font-weight: 900; color: #2B3A4A; }
+.bt-seat.on { color: #4A6FA5; border-color: #4A6FA5; box-shadow: 0 5px 0 #4A6FA5, 0 0 0 5px rgba(74,111,165,.25); }
+.bt-goal { width: 76px; height: 76px; border-radius: 50%; background: var(--paper) var(--paper-tex); border: 4px solid var(--wood); box-shadow: 0 5px 0 var(--wood); font-size: 36px; font-weight: 900; color: #2B3A4A; }
+.bt-goal.on { background: #4A6FA5; border-color: #33507A; box-shadow: 0 5px 0 #33507A; color: #fff; }
+.bt-seat:active, .bt-goal:active { translate: 0 4px; }
+.bt-start { grid-area: start; align-self: end; display: flex; align-items: center; justify-content: center; gap: 12px; height: 96px; border-radius: 48px; font-size: 44px; font-weight: 900; letter-spacing: 6px; color: #fff; background: #5E9A6B var(--paper-tex); border: 5px solid #3E6E48; box-shadow: 0 8px 0 #3E6E48; filter: url(#wobble); }
+.bt-start:active { translate: 0 6px; box-shadow: 0 2px 0 #3E6E48; }
+/* 玩法：注音、數學、英文一排，動腦（四個）自己一排；每科上面一條科目色 */
+.bt-games { grid-area: games; align-self: center; justify-self: center; display: grid; grid-template-columns: repeat(3, auto); justify-content: center; gap: 14px; }
+.bt-subject { display: flex; flex-direction: column; gap: 6px; padding: 6px 8px 8px; border-radius: 24px; background: rgba(255,253,247,.78); }
+.bt-subject:last-child { grid-column: 1 / -1; justify-self: center; }
+.bt-subject-name { padding: 4px 0; border-radius: 16px; background: var(--sc); color: #fff; font-size: 22px; font-weight: 900; text-align: center; letter-spacing: 8px; }
+.bt-cards { display: flex; justify-content: center; gap: 4px; }
+.bt-card { width: 98px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 4px; border-radius: 18px; border: 4px solid transparent; background: transparent; transition: scale .12s var(--ease-out); }
 .bt-card:active { scale: .95; }
-.bt-card .card-pic { width: 96px; height: 128px; display: block; border-radius: 16px; }
-.bt-card small { font-size: 19px; font-weight: 900; color: #2B3A4A; white-space: nowrap; }
-.bt-card.on { border-color: #E8C86A; background: rgba(255,243,176,.95); box-shadow: 0 0 0 4px rgba(232,200,106,.5); }
+.bt-card .card-pic { width: 82px; height: 106px; display: block; border-radius: 14px; }
+.bt-card small { font-size: 17px; font-weight: 900; color: #2B3A4A; white-space: nowrap; }
+.bt-card.on { border-color: var(--sc); background: #FFF3B0; box-shadow: 0 0 0 4px color-mix(in srgb, var(--sc) 30%, transparent); }
+/* 直的：選人和選項並排一列，玩法在中間，開始最下面 */
+#stage.portrait .bt-setup { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr auto; grid-template-areas: "top" "side" "games" "start"; padding: 18px 24px 30px; }
+#stage.portrait .bt-side { flex-direction: row; align-items: center; justify-content: space-between; gap: 14px; padding: 22px 16px 18px; }
+#stage.portrait .bt-slot { width: 140px; }
+#stage.portrait .bt-slot b { font-size: 24px; }
+#stage.portrait .bt-fields { gap: 12px; }
+#stage.portrait .bt-seat { padding: 6px 10px; }
+#stage.portrait .bt-seat svg { width: 74px; height: 50px; }
+#stage.portrait .bt-goal { width: 62px; height: 62px; font-size: 30px; }
+#stage.portrait .bt-slot-dog { width: 76px; height: 76px; }
+#stage.portrait .bt-card { width: 108px; }
+#stage.portrait .bt-card .card-pic { width: 92px; height: 118px; }
+#stage.portrait .bt-start { height: 88px; }
 
 /* 選人 */
 .bt-picker { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; background: rgba(27,43,75,.45); }
