@@ -221,7 +221,7 @@ export function renderProfiles (root, { profiles, onPick, onAdd, onGear }) {
 // teacher = { tier, range, whack }：老師帳號，首頁上方換成難度、範圍和打地鼠速度，沒有骨頭、寶箱、商店、隊員
 // partner：出任務的隊員（顏色）；team：自己原本那位加上買回家的隊員，首頁下方一排，點誰誰出任務
 // onRerender：點科目、回科目時要重畫首頁，由 main.js 重畫（按鈕都在 main.js 綁）
-export function renderHome (root, { profile, speech = true, bones = 0, partner = null, team = [], daily = null, recommend = null, musicOn = true, teacher = null, onRerender = null }) {
+export function renderHome (root, { profile, speech = true, bones = 0, partner = null, team = [], daily = null, recommend = null, musicOn = true, teacher = null, battle = false, onRerender = null }) {
   const me = partner == null ? profile.color : partner
   const d = daily || { rounds: 0, claimed: false, streak: 0, goal: 10 }
   const chestState = d.claimed ? 'claimed' : d.rounds >= d.goal ? 'ready' : 'locked'
@@ -239,6 +239,7 @@ export function renderHome (root, { profile, speech = true, bones = 0, partner =
       <button class="chest ${chestState}" id="btn-chest" aria-label="寶箱" ${chestState === 'ready' ? '' : 'disabled'}>${UX_ICONS.chest}</button>
     </div>
     <button class="music-btn ${musicOn ? '' : 'off'}" id="btn-music" aria-label="背景音樂">${musicOn ? UX_ICONS.musicOn : UX_ICONS.musicOff}</button>
+    ${battle ? `<button class="battle-btn" id="btn-battle" aria-label="對戰">${BATTLE_ICON}</button>` : ''}
     ${homeCardsHtml({ speech, teacher })}
     <div class="mates home-mates">${teacher || team.length < 2 ? '' : team.map(c => `<button class="mate ${c === me ? 'on' : ''}" data-partner="${c}" aria-label="${DOG_NAMES[c]}出任務">${dogSvg(c, { mate: c !== me })}</button>`).join('')}</div>
     <button class="gear" id="btn-gear" aria-label="大人面板">${GEAR_SVG}</button>`
@@ -296,6 +297,8 @@ const CAT_ICONS = {
   write: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1.2-4.4L16.4 4.4a2 2 0 0 1 2.8 0l.4.4a2 2 0 0 1 0 2.8L8.4 18.8z"/><path d="M14.5 6.3l3.2 3.2"/></svg>',
   speak: '<svg viewBox="0 0 24 24" fill="#fff"><path d="M12 15a4 4 0 0 0 4-4V6a4 4 0 1 0-8 0v5a4 4 0 0 0 4 4zm6-4a6 6 0 0 1-12 0H4a8 8 0 0 0 7 7.9V22h2v-3.1A8 8 0 0 0 20 11h-2z"/></svg>',
 }
+// 首頁右下角的對戰按鈕：兩隻狗面對面
+const BATTLE_ICON = '<svg viewBox="0 0 80 40" width="100" height="50"><circle cx="13" cy="20" r="11" fill="#fff"/><circle cx="67" cy="20" r="11" fill="#fff"/><text x="40" y="28" text-anchor="middle" font-size="21" font-weight="900" fill="#FFE08A" font-family="Arial Black, Arial, sans-serif">VS</text><circle cx="9.5" cy="18" r="2" fill="#2B3A4A"/><circle cx="16.5" cy="18" r="2" fill="#2B3A4A"/><circle cx="63.5" cy="18" r="2" fill="#2B3A4A"/><circle cx="70.5" cy="18" r="2" fill="#2B3A4A"/><path d="M9.5 24q3.5 3 7 0M63.5 24q3.5 3 7 0" stroke="#2B3A4A" stroke-width="2" fill="none" stroke-linecap="round"/></svg>'
 const BACK_SVG = '<svg viewBox="0 0 24 24" width="44" height="44" fill="#fff"><path d="M15.4 5.4 14 4l-8 8 8 8 1.4-1.4L8.8 12z"/></svg>'
 // 手機：短邊不到 600、手指操作。筆電（Surface 也是觸控但螢幕大）用一層
 export function isPhone () {

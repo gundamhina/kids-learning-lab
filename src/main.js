@@ -23,6 +23,7 @@ import { DIGIT_SYMBOLS, UPPER_SYMBOLS } from './latinstrokes.js'
 import { LETTER_GROUPS, SPELL_GROUPS, ENGLISH_ICON, letterOptions, letterPictureQuestion, wordTiles } from './english.js'
 import { countViewOf, countOptions, makePoolSize, compareQuestion, scatter, COUNT_ICONS } from './mathq.js'
 import { renderShop } from './shop.js'
+import { openBattle, canBattle } from './battle.js'
 import { setOutfit, boneSvg, ownedMates, bgHtml, UX_ICONS, twemojiName } from './art.js'
 const ENG_SPEAKER = '<svg viewBox="0 0 24 24" width="150" height="150" fill="#E0955B"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="#E0955B" stroke-width="2" fill="none" stroke-linecap="round"/></svg>'
 import { burstAt, flyBones, bump, buzz } from './fx.js'
@@ -212,7 +213,7 @@ function main () {
     destroyGame()
     const daily = { ...dailyView(state, today()), goal: DAILY_GOAL }
     const teacher = isTeacher() ? { tier: state.lockTier, range: state.rangeGroups || [], hidden: state.hiddenGames || [], whack: whackSpeed() } : null
-    renderHome(homeEl, { profile, speech: canSpeak(), bones: state.bones, partner: myColor(), team: teamOf(state, profile.color), daily, recommend: recommendGame(), musicOn: !settings.musicOff, teacher, onRerender: goHome })
+    renderHome(homeEl, { profile, speech: canSpeak(), bones: state.bones, partner: myColor(), team: teamOf(state, profile.color), daily, recommend: recommendGame(), musicOn: !settings.musicOff, teacher, battle: canBattle(), onRerender: goHome })
     // 點下方的隊員：換牠出任務（配件跟著戴到牠身上）
     homeEl.querySelectorAll('[data-partner]').forEach(b => b.addEventListener('pointerdown', () => {
       const c = parseInt(b.dataset.partner, 10)
@@ -251,6 +252,8 @@ function main () {
     })
     const shopBtn = homeEl.querySelector('#btn-shop')
     if (shopBtn) shopBtn.addEventListener('pointerdown', () => { audio.unlock(); openShop() })
+    const battleBtn = homeEl.querySelector('#btn-battle')
+    if (battleBtn) battleBtn.addEventListener('pointerdown', () => { audio.unlock(); openBattleScreen() })
     homeEl.querySelectorAll('[data-game]').forEach(card => {
       card.addEventListener('pointerdown', () => { audio.unlock(); startGame(card.dataset.game) })
     })
@@ -313,6 +316,26 @@ function main () {
       onClose: goHome,
     })
     show('shop')
+  }
+
+  // ---- 對戰：兩個人擠一台觸控螢幕 ----
+  const battleEl = document.getElementById('screen-battle')
+  let battle = null
+  function openBattleScreen () {
+    destroyGame()
+    if (battle) battle.destroy()
+    battle = openBattle(battleEl, {
+      profiles: store.loadProfiles(),
+      currentId: profile.id,
+      loadState: id => id === profile.id ? state : store.load(id),
+      audio,
+      // 對戰的骨頭存進那個人的存檔；是現在這個人就連手上的 state 一起改
+      onBones (id, n) {
+        if (id === profile.id) { state = addBones(state, n); store.save(id, state) } else store.save(id, addBones(store.load(id), n))
+      },
+      onExit () { battle.destroy(); battle = null; goHome() },
+    })
+    show('battle')
   }
 
   // ---- 骨頭（積分）：答對就有，玩完一局再送 ----

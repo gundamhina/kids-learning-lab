@@ -72,7 +72,7 @@ export function createPattern (root, { color = 0 } = {}) {
 
 // ---- 選卡片找不同：幾張卡片只有一張不一樣 ----
 // kind：icon 換一種圖、color 換顏色、flip 左右顛倒、turn 轉個方向、small 變小
-const ODD_STYLE = { color: 'filter:hue-rotate(150deg) saturate(1.4)', flip: 'transform:scaleX(-1)', turn: 'transform:rotate(90deg)', small: 'transform:scale(.72)' }
+export const ODD_STYLE = { color: 'filter:hue-rotate(150deg) saturate(1.4)', flip: 'transform:scaleX(-1)', turn: 'transform:rotate(90deg)', small: 'transform:scale(.72)' }
 export function createOdd (root, { color = 0 } = {}) {
   const dog = brainShell(root, color, 'odd-frame', '<div class="odd-grid"></div>')
   const grid = root.querySelector('.odd-grid')
@@ -236,12 +236,12 @@ export function createMaze (root, { color = 0 } = {}) {
 
 // ---- 圖形類比：左邊 A → B、C → ?，右邊三個選項 ----
 // 變化的畫法：small 變小、flip 左右顛倒、turn 轉 90 度、color 換顏色、two 變兩個
-function analogyItem (it) {
+export function analogyItem (it) {
   const style = { small: 'transform:scale(.6)', flip: 'transform:scaleX(-1)', turn: 'transform:rotate(90deg)', color: 'filter:hue-rotate(150deg) saturate(1.4)' }[it.t] || ''
   const img = `<img class="brain-img" src="img/emoji/${twemojiName(it.icon)}.svg" alt="" draggable="false" style="${style}">`
   return it.t === 'two' ? `<span class="an-two">${img}${img}</span>` : img
 }
-const AN_ARROW = '<svg viewBox="0 0 40 24" width="56" height="34"><path d="M2 12h30M24 4l10 8-10 8" fill="none" stroke="#B08A63" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+export const AN_ARROW = '<svg viewBox="0 0 40 24" width="56" height="34"><path d="M2 12h30M24 4l10 8-10 8" fill="none" stroke="#B08A63" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 export function createAnalogy (root, { color = 0 } = {}) {
   const dog = brainShell(root, color, 'analogy-frame', '<div class="an-grid"></div><div class="an-opts"></div>')
   const gridEl = root.querySelector('.an-grid')
@@ -284,7 +284,7 @@ export function createAnalogy (root, { color = 0 } = {}) {
 }
 
 // ---- 拼板補洞：左邊是完整的圖，右邊缺一塊，選轉對方向的三角板 ----
-const triTile = o => `<svg class="tri" viewBox="0 0 100 100" style="transform:rotate(${o * 90}deg)"><rect width="100" height="100" fill="#FFFDF7"/><path d="M0 100 L100 100 L100 0 Z" fill="#5AB4E5"/></svg>`
+export const triTile = o => `<svg class="tri" viewBox="0 0 100 100" style="transform:rotate(${o * 90}deg)"><rect width="100" height="100" fill="#FFFDF7"/><path d="M0 100 L100 100 L100 0 Z" fill="#5AB4E5"/></svg>`
 export function createTiles (root, { color = 0 } = {}) {
   const dog = brainShell(root, color, 'tiles-frame', '<div class="tl-board" data-b="model"></div><div class="tl-board" data-b="goal"></div><div class="tl-opts"></div>')
   const model = root.querySelector('[data-b="model"]')

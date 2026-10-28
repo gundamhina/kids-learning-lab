@@ -1327,3 +1327,175 @@ html, body { overscroll-behavior: none; } /* 家長區捲到頂再往下拉，An
 #stage.portrait .tl-board[data-b="model"] { left: 40px; top: 300px; }
 #stage.portrait .tl-board[data-b="goal"] { left: 430px; top: 300px; }
 #stage.portrait .tl-opts { left: 40px; top: 720px; }
+
+/* ================= 對戰（平板、觸控螢幕） ================= */
+.battle-btn { position: absolute; right: 22px; bottom: 44px; width: 132px; height: 80px; border-radius: 40px; background: #C8553D var(--paper-tex); border: 5px solid #8E3A28; box-shadow: 0 6px 0 #8E3A28; display: flex; align-items: center; justify-content: center; z-index: 2; filter: url(#wobble); }
+.battle-btn:active { translate: 0 4px; box-shadow: 0 2px 0 #8E3A28; }
+#screen-battle { user-select: none; -webkit-user-select: none; }
+
+/* 設定頁：上面選人，中間版面和題數，下面玩法 */
+.bt-setup { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 20px 30px 40px; overflow-y: auto; touch-action: pan-y; }
+.bt-setup-top { width: 100%; display: flex; align-items: center; justify-content: space-between; }
+.bt-setup-top .round-btn { width: 76px; height: 76px; }
+.bt-setup h2 { margin: 0; font-size: 52px; font-weight: 900; color: #2B3A4A; text-shadow: 0 3px 0 #fff; }
+.bt-start { padding: 12px 48px; border-radius: 40px; font-size: 40px; font-weight: 900; color: #fff; background: #5E9A6B var(--paper-tex); border: 5px solid #3E6E48; box-shadow: 0 7px 0 #3E6E48; filter: url(#wobble); }
+.bt-start:active { translate: 0 5px; box-shadow: 0 2px 0 #3E6E48; }
+.bt-players { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; justify-content: center; }
+.bt-slot { display: flex; align-items: center; gap: 14px; min-width: 300px; padding: 8px 26px 8px 8px; border-radius: 60px; background: var(--paper) var(--paper-tex); border: 5px solid var(--c); box-shadow: 0 6px 0 var(--c); }
+.bt-slot:active { translate: 0 4px; box-shadow: 0 2px 0 var(--c); }
+.bt-slot-dog { width: 84px; height: 84px; flex: none; display: flex; }
+.bt-slot-dog svg { width: 100%; height: 100%; }
+.bt-slot b { font-size: 32px; color: #2B3A4A; white-space: nowrap; }
+.bt-slot small { margin-left: auto; padding-left: 12px; font-size: 22px; font-weight: 900; color: var(--ink); }
+.bt-vs { width: 88px; height: 88px; flex: none; border-radius: 50%; background: #C8553D; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 0 #8E3A28; }
+.bt-opts-row { display: flex; gap: 22px; flex-wrap: wrap; justify-content: center; }
+.bt-seg { display: flex; align-items: center; gap: 6px; padding: 7px; border-radius: 40px; background: rgba(255,253,247,.9); border: 4px solid var(--wood); font-size: 26px; font-weight: 900; color: #2B3A4A; }
+.bt-seg span { padding: 0 8px; }
+.bt-seg button { padding: 8px 22px; border-radius: 30px; font-size: 28px; font-weight: 900; color: #2B3A4A; background: transparent; }
+.bt-seg button.on { background: #4A6FA5; color: #fff; }
+.bt-games { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px 20px; }
+.bt-subject { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 30px; background: rgba(255,253,247,.65); }
+.bt-subject-name { writing-mode: vertical-rl; font-size: 26px; font-weight: 900; color: #2B3A4A; letter-spacing: 4px; }
+.bt-cards { display: flex; gap: 8px; }
+.bt-card { width: 116px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px; border-radius: 22px; border: 4px solid transparent; background: transparent; transition: scale .12s var(--ease-out); }
+.bt-card:active { scale: .95; }
+.bt-card .card-pic { width: 96px; height: 128px; display: block; border-radius: 16px; }
+.bt-card small { font-size: 19px; font-weight: 900; color: #2B3A4A; white-space: nowrap; }
+.bt-card.on { border-color: #E8C86A; background: rgba(255,243,176,.95); box-shadow: 0 0 0 4px rgba(232,200,106,.5); }
+
+/* 選人 */
+.bt-picker { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; background: rgba(27,43,75,.45); }
+.bt-picker-box { max-width: calc(100% - 60px); padding: 30px; border-radius: 36px; background: var(--paper) var(--paper-tex); border: 5px solid var(--wood); box-shadow: 0 8px 0 var(--wood); display: flex; flex-direction: column; align-items: center; gap: 22px; }
+.bt-picker-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
+.bt-pick { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 18px; border-radius: 24px; background: #fff; border: 4px solid var(--wood); box-shadow: 0 5px 0 var(--wood); }
+.bt-pick b { font-size: 26px; color: #2B3A4A; }
+.bt-guest { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; }
+.bt-guest b { margin-right: 6px; font-size: 30px; color: #2B3A4A; }
+.bt-level { padding: 8px 14px; border-radius: 20px; background: #FFF3B0; border: 4px solid #C39A1E; box-shadow: 0 4px 0 #C39A1E; font-size: 22px; color: #C39A1E; }
+.bt-picker-note { margin: 0; font-size: 20px; color: var(--ink); }
+
+/* 比賽：兩條跑道。每條跑道是一個 container，裡面的大小都照跑道算（cqw、cqh、cqmin），左右、上下、橫的直的螢幕都排得下 */
+.bt-match { position: absolute; inset: 0; display: flex; touch-action: none; }
+.bt-match.face { flex-direction: column-reverse; }
+.bt-match.face .bt-lane[data-lane="1"] { transform: rotate(180deg); }
+.bt-match.lr .bt-lane + .bt-lane { border-left: 6px solid rgba(255,253,247,.9); }
+.bt-match.face .bt-lane + .bt-lane { border-top: 6px solid rgba(255,253,247,.9); }
+.bt-lane { position: relative; flex: 1; min-width: 0; min-height: 0; container-type: size; display: flex; flex-direction: column; align-items: center; gap: 1.5cqmin; padding: 2cqmin; background: color-mix(in srgb, var(--c) 12%, transparent); }
+.bt-head { flex: none; display: flex; align-items: center; gap: 1.6cqmin; padding: .6cqmin 2.4cqmin .6cqmin .6cqmin; border-radius: 8cqmin; background: rgba(255,253,247,.94); border: .7cqmin solid var(--c); }
+.bt-head-dog { width: 9cqmin; height: 9cqmin; display: flex; }
+.bt-head-dog svg { width: 100%; height: 100%; }
+.bt-head b { font-size: 4.4cqmin; color: #2B3A4A; white-space: nowrap; }
+.bt-paws { display: flex; gap: .5cqmin; }
+.bt-paws .paw { font-size: 4.6cqmin; }
+.bt-paws .paw.on { animation: pawStamp .35s; }
+.bt-body { flex: 1; min-height: 0; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; gap: 3cqmin; }
+.bt-prompt { display: flex; align-items: center; justify-content: center; min-width: 0; }
+.bt-choices { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 3cqmin; --opt: min(calc(86cqw / (var(--n) + .4)), 26cqh); }
+@container (min-aspect-ratio: 3 / 2) {
+  .bt-body { flex-direction: row; }
+  .bt-choices { max-width: 55%; --opt: min(calc(50cqw / (var(--n) + .4)), 38cqh); }
+}
+.bt-opt { width: var(--opt); height: var(--opt); padding: calc(var(--opt) * .12); border-radius: calc(var(--opt) * .15); background: var(--paper) var(--paper-tex); border: .8cqmin solid var(--wood); box-shadow: 0 1.1cqmin 0 var(--wood); display: flex; align-items: center; justify-content: center; transition: scale .12s var(--ease-out); }
+.bt-opt:active { scale: .94; }
+.bt-opt.shake { animation: shake .45s ease-in-out; }
+.bt-opt.right { border-color: #466E46; box-shadow: 0 0 0 1.4cqmin rgba(107,158,107,.5), 0 1.1cqmin 0 #466E46; }
+.bt-img { width: 100%; height: 100%; pointer-events: none; -webkit-user-drag: none; }
+.bt-pic { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.bt-pic .emoji-img, .bt-pic .art-slot, .bt-pic .bt-img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.bt-pic .emoji { font-size: calc(var(--opt) * .6); line-height: 1; }
+.bt-pic .art-slot { position: absolute; inset: 0; }
+/* 題目：牌子 */
+.bt-sign { display: flex; align-items: center; justify-content: center; padding: 2cqmin 5cqmin; border-radius: 5cqmin; background: var(--paper) var(--paper-tex); border: .9cqmin solid var(--wood); box-shadow: 0 1.3cqmin 0 var(--wood); color: #2B3A4A; font-weight: 900; line-height: 1.1; }
+.bt-symbol { min-width: 1.3em; font-size: min(28cqh, 32cqw); }
+.bt-word { font-size: min(24cqh, 26cqw); }
+.bt-word.w3 { font-size: min(18cqh, 19cqw); }
+.bt-letter { display: inline-flex; align-items: baseline; gap: .08em; font-family: "Arial Rounded MT Bold", Arial, sans-serif; font-weight: 900; color: #2B3A4A; line-height: 1; }
+.bt-letter small { font-size: .72em; color: var(--ink); }
+.bt-sign.bt-letter { font-size: min(24cqh, 26cqw); }
+.bt-opt .bt-letter { font-size: calc(var(--opt) * .48); }
+.bt-sign.bt-pic { width: min(32cqh, 40cqw); height: min(32cqh, 40cqw); padding: 3cqmin; }
+.bt-num { font-size: calc(var(--opt) * .6); font-weight: 900; color: #2B3A4A; line-height: 1; }
+.bt-ask { padding: 1cqmin 4cqmin; border-radius: 5cqmin; background: rgba(255,253,247,.94); font-size: 6cqmin; font-weight: 900; color: #2B3A4A; }
+/* 數東西：正方形的框，東西的大小、位置都用框的百分比 */
+.bt-box { position: relative; display: block; aspect-ratio: 1; border-radius: 4cqmin; background: var(--paper) var(--paper-tex); border: .9cqmin solid var(--wood); }
+.bt-count { width: min(52cqh, 80cqw); }
+@container (min-aspect-ratio: 3 / 2) { .bt-count { width: min(78cqh, 40cqw); } }
+.bt-item { position: absolute; display: flex; }
+.bt-body[data-game="compare"] .bt-choices { --opt: min(42cqw, 56cqh); }
+@container (min-aspect-ratio: 3 / 2) { .bt-body[data-game="compare"] .bt-choices { max-width: none; --opt: min(36cqw, 72cqh); } }
+.bt-body[data-game="compare"] .bt-opt { padding: 0; }
+.bt-opt .bt-box { width: 100%; border: 0; background: none; }
+/* 找規律：一排圖，空一格 */
+.bt-row { display: flex; gap: 1cqmin; padding: 1.5cqmin; border-radius: 3cqmin; background: rgba(255,253,247,.94); --cell: min(calc(84cqw / var(--len)), 15cqh); }
+@container (min-aspect-ratio: 3 / 2) { .bt-row { --cell: min(calc(40cqw / var(--len)), 30cqh); } }
+.bt-cell { width: var(--cell); height: var(--cell); padding: calc(var(--cell) * .08); display: flex; align-items: center; justify-content: center; }
+.bt-blank { border: .6cqmin dashed #E0955B; border-radius: 1.6cqmin; background: rgba(224,149,91,.1); }
+.bt-group { display: flex; align-items: center; justify-content: center; gap: 4%; width: 100%; height: 100%; }
+.bt-opt:has(.bt-group:not(.n1)) { width: auto; height: calc(var(--opt) * .62); padding: 1cqmin 2cqmin; }
+.bt-group:not(.n1) .bt-img { width: calc(var(--opt) * .4); height: calc(var(--opt) * .4); }
+/* 圖形類比：A → B　C → ? */
+.bt-analogy { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 1.2cqmin; --cell: min(15cqw, 17cqh); }
+@container (min-aspect-ratio: 3 / 2) { .bt-analogy { --cell: min(9cqw, 28cqh); } }
+.bt-analogy .bt-cell { padding: calc(var(--cell) * .14); border-radius: 2cqmin; background: var(--paper) var(--paper-tex); border: .6cqmin solid var(--wood); }
+.bt-analogy > svg { flex: none; width: 10cqmin; height: auto; }
+.bt-analogy .bt-gap { width: 3cqmin; }
+/* 拼板補洞：兩塊板子 */
+.bt-tiles { display: flex; gap: 4cqmin; --bsize: min(36cqw, 30cqh); }
+@container (min-aspect-ratio: 3 / 2) { .bt-tiles { --bsize: min(20cqw, 60cqh); } }
+.bt-board { width: var(--bsize); height: var(--bsize); display: grid; grid-template-columns: repeat(var(--bn), 1fr); gap: .5cqmin; padding: 1cqmin; border-radius: 2cqmin; background: var(--paper) var(--paper-tex); border: .7cqmin solid var(--wood); }
+.bt-tcell .tri, .bt-opt .tri { width: 100%; height: 100%; display: block; }
+.bt-hole { border: .5cqmin dashed #E0955B; background: rgba(224,149,91,.12); }
+/* 找不同：沒有題目，卡片排滿 */
+.bt-body.no-prompt .bt-prompt { display: none; }
+.bt-body.no-prompt .bt-choices.n3 { --opt: min(27cqw, 46cqh); }
+.bt-body.no-prompt .bt-choices.n4 { --opt: min(36cqw, 32cqh); max-width: calc(var(--opt) * 2 + 4cqmin); }
+.bt-body.no-prompt .bt-choices.n6 { --opt: min(27cqw, 30cqh); max-width: calc(var(--opt) * 3 + 7cqmin); }
+@container (min-aspect-ratio: 3 / 2) {
+  .bt-body.no-prompt .bt-choices.n3 { max-width: none; }
+  .bt-body.no-prompt .bt-choices.n4 { --opt: min(20cqw, 36cqh); max-width: none; }
+  .bt-body.no-prompt .bt-choices.n6 { --opt: min(20cqw, 36cqh); max-width: calc(var(--opt) * 3 + 7cqmin); }
+}
+/* 倒數、結果蓋在跑道上 */
+.bt-cover { position: absolute; inset: 0; z-index: 3; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 2cqmin; overflow: hidden; }
+.bt-cover.show { display: flex; }
+.bt-cover.counting { background: rgba(255,253,247,.55); }
+.bt-count-num { font-size: 36cqmin; font-weight: 900; line-height: 1; color: var(--c); text-shadow: 0 1cqmin 0 #fff; }
+.bt-cover.win { background: rgba(255,243,176,.93); }
+.bt-cover.lose { background: rgba(255,253,247,.9); }
+.bt-crown { animation: pop .5s; }
+.bt-crown svg { width: 24cqmin; height: auto; }
+.bt-result-dog { width: 32cqmin; height: 32cqmin; display: flex; }
+.bt-result-dog svg { width: 100%; height: 100%; }
+.bt-cover.win .bt-result-dog { animation: bounce 1s ease-in-out infinite; }
+.bt-result-word { font-size: 11cqmin; font-weight: 900; color: #2B3A4A; }
+.bt-result-bones { font-size: 5.5cqmin; font-weight: 900; color: #B8860B; }
+/* 中間的按鈕：比賽中只有離開（按兩下），比完是再一場、回設定 */
+.bt-mid { position: absolute; z-index: 4; display: flex; gap: 22px; }
+.bt-match.lr .bt-mid { left: 50%; bottom: 22px; transform: translateX(-50%); }
+.bt-match.face .bt-mid { left: 22px; top: 50%; transform: translateY(-50%); }
+.bt-mid .round-btn { width: 72px; height: 72px; }
+.bt-mid .round-btn svg { width: 36px; height: 36px; }
+.bt-quit.armed { background-color: #C8553D; animation: shake .45s ease-in-out; }
+.bt-match .bt-mid.done { left: 50%; top: 50%; bottom: auto; transform: translate(-50%, -50%); }
+.bt-mid.done .round-btn { width: 116px; height: 116px; }
+.bt-mid.done .round-btn svg { width: 56px; height: 56px; }
+/* 直的平板左右坐：跑道又高又窄，選項改成上下排、題目放大 */
+@container (max-aspect-ratio: 2 / 3) {
+  .bt-choices { flex-direction: column; --opt: min(60cqw, calc(52cqh / (var(--n) + .4))); }
+  .bt-symbol { font-size: min(20cqh, 56cqw); }
+  .bt-word { font-size: min(13cqh, 34cqw); }
+  .bt-word.w3 { font-size: min(10cqh, 26cqw); }
+  .bt-sign.bt-letter { font-size: min(16cqh, 38cqw); }
+  .bt-sign.bt-pic { width: min(24cqh, 64cqw); height: min(24cqh, 64cqw); }
+  .bt-count { width: 88cqw; }
+  .bt-row { flex-wrap: wrap; justify-content: center; max-width: 92cqw; --cell: min(20cqw, 10cqh); }
+  .bt-analogy { --cell: min(30cqw, 12cqh); }
+  .bt-analogy .bt-gap { flex-basis: 100%; height: 0; }
+  .bt-tiles { flex-direction: column; --bsize: min(64cqw, 24cqh); }
+  .bt-body[data-game="compare"] .bt-choices { --opt: min(80cqw, 34cqh); }
+  .bt-body.no-prompt .bt-choices.n3 { --opt: min(60cqw, 26cqh); }
+  .bt-body.no-prompt .bt-choices.n4, .bt-body.no-prompt .bt-choices.n6 { flex-direction: row; --opt: min(42cqw, 24cqh); max-width: calc(var(--opt) * 2 + 4cqmin); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bt-cover.win .bt-result-dog { animation: none; }
+}
